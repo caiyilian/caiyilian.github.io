@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的个人网站</title>
+    <title>夏日清凉小空调</title>
     <style>
         * {
             margin: 0;
@@ -13,147 +13,499 @@
 
         body {
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(to bottom, #87CEEB, #E0F6FF);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 20px;
         }
 
-        .container {
+        .game-container {
+            display: flex;
+            gap: 50px;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+
+        .aircon-unit {
+            width: 300px;
+            height: 400px;
+            background: linear-gradient(145deg, #f0f0f0, #cacaca);
+            border-radius: 20px;
+            box-shadow: 20px 20px 60px #bebebe, -20px -20px 60px #ffffff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .aircon-front {
+            padding: 30px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .brand-name {
             text-align: center;
-        }
-
-        .main-button {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
-            color: white;
-            border: none;
-            padding: 20px 40px;
-            font-size: 24px;
+            font-size: 18px;
             font-weight: bold;
-            border-radius: 50px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .display-panel {
+            background: #000;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: 24px;
+            box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+
+        .temp-display {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .control-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .control-label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .temp-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
             cursor: pointer;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            font-size: 16px;
             transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 2px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
-        .main-button:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
-            background: linear-gradient(45deg, #ee5a24, #ff6b6b);
+        .temp-up {
+            background: linear-gradient(145deg, #ff6b6b, #ff5252);
+            color: white;
         }
 
-        .main-button:active {
+        .temp-down {
+            background: linear-gradient(145deg, #4dabf7, #339af0);
+            color: white;
+        }
+
+        .power-btn {
+            background: linear-gradient(145deg, #51cf66, #40c057);
+            color: white;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        button:hover {
             transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
         }
 
-        .image-overlay {
-            position: fixed;
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .power-btn.off {
+            background: linear-gradient(145deg, #ff6b6b, #ff5252);
+        }
+
+        .vent {
+            background: #ddd;
+            height: 60px;
+            border-radius: 10px;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vent-slats {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            padding: 5px;
+        }
+
+        .slat {
+            height: 2px;
+            background: #999;
+            border-radius: 1px;
+        }
+
+        .air-flow {
+            position: absolute;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: rgba(0, 0, 0, 0.9);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(173, 216, 230, 0.3) 50%, 
+                transparent 100%);
+            animation: flow 2s linear infinite;
             opacity: 0;
-            transition: opacity 0.5s ease;
         }
 
-        .image-overlay.show {
-            display: flex;
+        .air-flow.active {
             opacity: 1;
         }
 
-        .fullscreen-image {
-            max-width: 100vw;
-            max-height: 100vh;
-            width: auto;
-            height: auto;
-            object-fit: contain;
-            border-radius: 10px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        @keyframes flow {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
         }
 
-        .close-button {
+        .thermometer-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .thermometer {
+            width: 60px;
+            height: 300px;
+            background: linear-gradient(145deg, #f0f0f0, #cacaca);
+            border-radius: 30px;
+            position: relative;
+            box-shadow: 10px 10px 30px #bebebe, -10px -10px 30px #ffffff;
+            overflow: hidden;
+        }
+
+        .thermometer-tube {
             position: absolute;
-            top: 30px;
-            right: 30px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: none;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            font-size: 24px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 220px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
         }
 
-        .close-button:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.1);
+        .thermometer-liquid {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, #ff4444, #ff6666);
+            border-radius: 10px;
+            transition: height 0.5s ease;
+        }
+
+        .thermometer-bulb {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(145deg, #ff4444, #cc3333);
+            border-radius: 50%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .thermometer-label {
+            font-weight: bold;
+            color: #333;
+            font-size: 18px;
+        }
+
+        .current-temp {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+        }
+
+        .status-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ff4444;
+            box-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .status-indicator.on {
+            background: #44ff44;
+            box-shadow: 0 0 10px rgba(68, 255, 68, 0.5);
+        }
+
+        .cooling-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle, rgba(173, 216, 230, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+
+        .cooling-effect.active {
+            opacity: 1;
+            animation: cooling-pulse 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes cooling-pulse {
+            0% { opacity: 0.2; }
+            100% { opacity: 0.5; }
         }
 
         .title {
-            color: white;
-            font-size: 48px;
-            margin-bottom: 30px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-            font-weight: 300;
-        }
-
-        .subtitle {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 18px;
-            margin-bottom: 50px;
-            font-weight: 300;
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1 class="title">欢迎来到我的网站</h1>
-        <p class="subtitle">点击下方按钮查看精彩内容</p>
-        <button class="main-button" onclick="showImage()">点击查看</button>
-    </div>
+    <div class="title">夏日清凉小空调</div>
+    
+    <div class="game-container">
+        <div class="aircon-unit">
+            <div class="cooling-effect" id="coolingEffect"></div>
+            <div class="status-indicator" id="statusIndicator"></div>
+            <div class="aircon-front">
+                <div class="brand-name">❄️ 清凉夏日 ❄️</div>
+                <div class="display-panel">
+                    <div class="temp-display" id="displayTemp">26°C</div>
+                    <div id="statusText">已关闭</div>
+                </div>
+                
+                <div class="vent">
+                    <div class="vent-slats">
+                        <div class="slat"></div>
+                        <div class="slat"></div>
+                        <div class="slat"></div>
+                        <div class="slat"></div>
+                        <div class="slat"></div>
+                        <div class="slat"></div>
+                        <div class="slat"></div>
+                        <div class="slat"></div>
+                    </div>
+                    <div class="air-flow" id="airFlow"></div>
+                </div>
+                
+                <div class="controls">
+                    <div class="control-group">
+                        <span class="control-label">目标温度:</span>
+                        <div class="temp-buttons">
+                            <button class="temp-up" onclick="adjustTemp(1)">▲</button>
+                            <button class="temp-down" onclick="adjustTemp(-1)">▼</button>
+                        </div>
+                    </div>
+                    <button class="power-btn" id="powerBtn" onclick="togglePower()">开启空调</button>
+                </div>
+            </div>
+        </div>
 
-    <div class="image-overlay" id="imageOverlay">
-        <button class="close-button" onclick="hideImage()">&times;</button>
-        <img src="static/assets/img/main-image.jpg" alt="主要图片" class="fullscreen-image" id="mainImage">
+        <div class="thermometer-container">
+            <div class="thermometer-label">温度计</div>
+            <div class="thermometer">
+                <div class="thermometer-tube">
+                    <div class="thermometer-liquid" id="thermometerLiquid"></div>
+                </div>
+                <div class="thermometer-bulb"></div>
+            </div>
+            <div class="current-temp" id="currentTemp">28°C</div>
+        </div>
     </div>
 
     <script>
-        function showImage() {
-            const overlay = document.getElementById('imageOverlay');
-            overlay.classList.add('show');
-            document.body.style.overflow = 'hidden';
+        let isOn = false;
+        let targetTemp = 26;
+        let currentTemp = 28;
+        let coolingInterval;
+
+        const displayTemp = document.getElementById('displayTemp');
+        const statusText = document.getElementById('statusText');
+        const powerBtn = document.getElementById('powerBtn');
+        const airFlow = document.getElementById('airFlow');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const coolingEffect = document.getElementById('coolingEffect');
+        const thermometerLiquid = document.getElementById('thermometerLiquid');
+        const currentTempDisplay = document.getElementById('currentTemp');
+
+        function updateDisplay() {
+            displayTemp.textContent = targetTemp + '°C';
+            
+            if (isOn) {
+                statusText.textContent = '运行中';
+                powerBtn.textContent = '关闭空调';
+                powerBtn.classList.add('off');
+                airFlow.classList.add('active');
+                statusIndicator.classList.add('on');
+                coolingEffect.classList.add('active');
+            } else {
+                statusText.textContent = '已关闭';
+                powerBtn.textContent = '开启空调';
+                powerBtn.classList.remove('off');
+                airFlow.classList.remove('active');
+                statusIndicator.classList.remove('on');
+                coolingEffect.classList.remove('active');
+            }
+            
+            updateThermometer();
         }
 
-        function hideImage() {
-            const overlay = document.getElementById('imageOverlay');
-            overlay.classList.remove('show');
-            document.body.style.overflow = 'auto';
+        function adjustTemp(change) {
+            targetTemp = Math.max(16, Math.min(30, targetTemp + change));
+            updateDisplay();
+            
+            if (isOn) {
+                playClickSound();
+            }
         }
 
-        // 按ESC键关闭图片
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                hideImage();
+        function togglePower() {
+            isOn = !isOn;
+            updateDisplay();
+            playClickSound();
+            
+            if (isOn) {
+                startCooling();
+            } else {
+                stopCooling();
+            }
+        }
+
+        function startCooling() {
+            coolingInterval = setInterval(() => {
+                if (Math.abs(currentTemp - targetTemp) > 0.1) {
+                    if (currentTemp > targetTemp) {
+                        currentTemp -= 0.1;
+                    } else {
+                        currentTemp += 0.1;
+                    }
+                    updateThermometer();
+                }
+            }, 200);
+        }
+
+        function stopCooling() {
+            if (coolingInterval) {
+                clearInterval(coolingInterval);
+                coolingInterval = null;
+            }
+            
+            // Gradually return to room temperature when off
+            coolingInterval = setInterval(() => {
+                if (Math.abs(currentTemp - 28) > 0.1) {
+                    if (currentTemp < 28) {
+                        currentTemp += 0.05;
+                    } else {
+                        currentTemp -= 0.05;
+                    }
+                    updateThermometer();
+                } else {
+                    clearInterval(coolingInterval);
+                    coolingInterval = null;
+                }
+            }, 300);
+        }
+
+        function updateThermometer() {
+            const minTemp = 16;
+            const maxTemp = 32;
+            const percentage = Math.max(0, Math.min(100, ((currentTemp - minTemp) / (maxTemp - minTemp)) * 100));
+            
+            thermometerLiquid.style.height = percentage + '%';
+            
+            // Change color based on temperature
+            if (currentTemp <= 20) {
+                thermometerLiquid.style.background = 'linear-gradient(to top, #3399ff, #66b3ff)';
+            } else if (currentTemp <= 26) {
+                thermometerLiquid.style.background = 'linear-gradient(to top, #44ff44, #66ff66)';
+            } else {
+                thermometerLiquid.style.background = 'linear-gradient(to top, #ff4444, #ff6666)';
+            }
+            
+            currentTempDisplay.textContent = Math.round(currentTemp * 10) / 10 + '°C';
+        }
+
+        function playClickSound() {
+            // Create a simple click sound using Web Audio API
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.1);
+        }
+
+        // Initialize
+        updateDisplay();
+        updateThermometer();
+
+        // Add keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp') {
+                adjustTemp(1);
+            } else if (e.key === 'ArrowDown') {
+                adjustTemp(-1);
+            } else if (e.key === ' ') {
+                e.preventDefault();
+                togglePower();
             }
         });
 
-        // 点击图片外部区域关闭图片
-        document.getElementById('imageOverlay').addEventListener('click', function(event) {
-            if (event.target === this) {
-                hideImage();
+        // Add some ambient animation
+        setInterval(() => {
+            if (isOn && Math.random() < 0.1) {
+                // Random temperature fluctuation when on
+                currentTemp += (Math.random() - 0.5) * 0.1;
+                updateThermometer();
             }
-        });
+        }, 1000);
     </script>
 </body>
 </html>
