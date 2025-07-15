@@ -1,511 +1,192 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>夏日清凉小空调</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="Academic Webpage" />
+    <meta name="author" content="yixin0313" />
+    <title id="title"></title>
 
-        body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(to bottom, #87CEEB, #E0F6FF);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
+    <!-- Icon -->
+    <link rel="icon" type="image/x-icon" href="static/assets/favicon.ico" />
 
-        .game-container {
-            display: flex;
-            gap: 50px;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 40px;
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
-        }
+    <!-- Bootstrap icons-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
 
-        .aircon-unit {
-            width: 300px;
-            height: 400px;
-            background: linear-gradient(145deg, #f0f0f0, #cacaca);
-            border-radius: 20px;
-            box-shadow: 20px 20px 60px #bebebe, -20px -20px 60px #ffffff;
-            position: relative;
-            overflow: hidden;
-        }
+    <!-- Google fonts-->
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,600;1,600&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,300;0,500;0,600;0,700;1,300;1,500;1,600;1,700&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;1,400&amp;display=swap"
+        rel="stylesheet" />
 
-        .aircon-front {
-            padding: 30px;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
+    <!-- Core theme CSS (includes Bootstrap)-->
+    <link type="text/css" href="static/css/styles.css" rel="stylesheet" />
+    <link type="text/css" href="static/css/main.css" rel="stylesheet" />
 
-        .brand-name {
-            text-align: center;
-            font-size: 18px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 10px;
-        }
+    <!-- Bootstrap core JS-->
+    <script type="text/javascript" src="static/js/bootstrap.bundle.min.js"></script>
 
-        .display-panel {
-            background: #000;
-            color: #00ff00;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            font-family: 'Courier New', monospace;
-            font-size: 24px;
-            box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.3);
-        }
+    <!-- For Compatability -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
 
-        .temp-display {
-            font-size: 32px;
-            font-weight: bold;
-        }
+    <!-- Markdown -->
+    <script type="text/javascript" src="static/js/marked.min.js"></script>
 
-        .controls {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
+    <!-- Mathematics -->
+    <script>
+        // See https://docs.mathjax.org/en/latest/index.html for more details.
+        MathJax = {
+            tex: {
+                packages: {},              // extensions to use
+                inlineMath: [              // start/end delimiter pairs for in-line math
+                    ['$', '$'],
+                    ['\\(', '\\)']
+                ],
+                displayMath: [             // start/end delimiter pairs for display math
+                    ['$$', '$$'],
+                    ['\\[', '\\]']
+                ],
+                processEscapes: false,      // use \$ to produce a literal dollar sign
+                processEnvironments: true, // process \begin{xxx}...\end{xxx} outside math mode
+                processRefs: true,         // process \ref{...} outside of math mode
+                digits: /^(?:[0-9]+(?:\{,\}[0-9]{3})*(?:\.[0-9]*)?|\.[0-9]+)/,    // pattern for recognizing numbers
+                tags: 'all',              // or 'ams' or 'all'
+                tagSide: 'right',          // side for \tag macros
+                tagIndent: '0.8em',        // amount to indent tags
+                useLabelIds: true,         // use label name rather than tag for ids
+                maxMacros: 10000,          // maximum number of macro substitutions per expression
+                maxBuffer: 5 * 1024,       // maximum size for the internal TeX string (5K)
+                // baseURL:                   // URL for use with links to tags (when there is a <base> tag in effect)
+                // (document.getElementsByTagName('base').length === 0) ? '' : String(document.location).replace(/#.*$/, ''),
+                formatError:               // function called when TeX syntax errors occur
+                    (jax, err) => jax.formatError(err)
+            }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script"
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <script type="text/javascript" id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
-        .control-group {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    <!-- Core JS-->
+    <script type="text/javascript" src="static/js/scripts.js"></script>
+    <script type="text/javascript" src="static/js/js-yaml.min.js"></script>
 
-        .control-label {
-            font-weight: bold;
-            color: #333;
-        }
-
-        .temp-buttons {
-            display: flex;
-            gap: 10px;
-        }
-
-        button {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .temp-up {
-            background: linear-gradient(145deg, #ff6b6b, #ff5252);
-            color: white;
-        }
-
-        .temp-down {
-            background: linear-gradient(145deg, #4dabf7, #339af0);
-            color: white;
-        }
-
-        .power-btn {
-            background: linear-gradient(145deg, #51cf66, #40c057);
-            color: white;
-            padding: 15px 30px;
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        button:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .power-btn.off {
-            background: linear-gradient(145deg, #ff6b6b, #ff5252);
-        }
-
-        .vent {
-            background: #ddd;
-            height: 60px;
-            border-radius: 10px;
-            margin: 20px 0;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .vent-slats {
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-            padding: 5px;
-        }
-
-        .slat {
-            height: 2px;
-            background: #999;
-            border-radius: 1px;
-        }
-
-        .air-flow {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, 
-                transparent 0%, 
-                rgba(173, 216, 230, 0.3) 50%, 
-                transparent 100%);
-            animation: flow 2s linear infinite;
-            opacity: 0;
-        }
-
-        .air-flow.active {
-            opacity: 1;
-        }
-
-        @keyframes flow {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        .thermometer-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .thermometer {
-            width: 60px;
-            height: 300px;
-            background: linear-gradient(145deg, #f0f0f0, #cacaca);
-            border-radius: 30px;
-            position: relative;
-            box-shadow: 10px 10px 30px #bebebe, -10px -10px 30px #ffffff;
-            overflow: hidden;
-        }
-
-        .thermometer-tube {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 20px;
-            height: 220px;
-            background: #333;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .thermometer-liquid {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(to top, #ff4444, #ff6666);
-            border-radius: 10px;
-            transition: height 0.5s ease;
-        }
-
-        .thermometer-bulb {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(145deg, #ff4444, #cc3333);
-            border-radius: 50%;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .thermometer-label {
-            font-weight: bold;
-            color: #333;
-            font-size: 18px;
-        }
-
-        .current-temp {
-            font-size: 24px;
-            font-weight: bold;
-            color: #333;
-            text-align: center;
-        }
-
-        .status-indicator {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #ff4444;
-            box-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
-            transition: all 0.3s ease;
-        }
-
-        .status-indicator.on {
-            background: #44ff44;
-            box-shadow: 0 0 10px rgba(68, 255, 68, 0.5);
-        }
-
-        .cooling-effect {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle, rgba(173, 216, 230, 0.1) 0%, transparent 70%);
-            opacity: 0;
-            transition: opacity 0.5s ease;
-            pointer-events: none;
-        }
-
-        .cooling-effect.active {
-            opacity: 1;
-            animation: cooling-pulse 2s ease-in-out infinite alternate;
-        }
-
-        @keyframes cooling-pulse {
-            0% { opacity: 0.2; }
-            100% { opacity: 0.5; }
-        }
-
-        .title {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 28px;
-            font-weight: bold;
-            color: #333;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-        }
-    </style>
 </head>
-<body>
-    <div class="title">夏日清凉小空调</div>
-    
-    <div class="game-container">
-        <div class="aircon-unit">
-            <div class="cooling-effect" id="coolingEffect"></div>
-            <div class="status-indicator" id="statusIndicator"></div>
-            <div class="aircon-front">
-                <div class="brand-name">❄️ 清凉夏日 ❄️</div>
-                <div class="display-panel">
-                    <div class="temp-display" id="displayTemp">26°C</div>
-                    <div id="statusText">已关闭</div>
-                </div>
-                
-                <div class="vent">
-                    <div class="vent-slats">
-                        <div class="slat"></div>
-                        <div class="slat"></div>
-                        <div class="slat"></div>
-                        <div class="slat"></div>
-                        <div class="slat"></div>
-                        <div class="slat"></div>
-                        <div class="slat"></div>
-                        <div class="slat"></div>
-                    </div>
-                    <div class="air-flow" id="airFlow"></div>
-                </div>
-                
-                <div class="controls">
-                    <div class="control-group">
-                        <span class="control-label">目标温度:</span>
-                        <div class="temp-buttons">
-                            <button class="temp-up" onclick="adjustTemp(1)">▲</button>
-                            <button class="temp-down" onclick="adjustTemp(-1)">▼</button>
-                        </div>
-                    </div>
-                    <button class="power-btn" id="powerBtn" onclick="togglePower()">开启空调</button>
-                </div>
+
+<body id="page-top">
+    <!-- Navigation-->
+    <nav class="header navbar navbar-expand-lg navbar-light fixed-top shadow-sm" id="mainNav">
+        <div class="container px-5">
+            <a id="page-top-title" class="navbar-brand fw-bold" href="#page-top"></a>
+            <!-- <a href="#page-top"><img src="static/assets/img/CUMT_LOGO.svg" style="width: 11rem;"></a> -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive"
+                aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                MENU
+                <i class="bi-list"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav ms-auto me-4 my-3 my-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link me-lg-3" href="#home">HOME</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link me-lg-3" href="#awards">AWARDS</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link me-lg-3" href="#experience">EXPERIENCE</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link me-lg-3" href="#publications">PUBLICATIONS</a>
+                    </li>
+                </ul>
             </div>
         </div>
+    </nav>
 
-        <div class="thermometer-container">
-            <div class="thermometer-label">温度计</div>
-            <div class="thermometer">
-                <div class="thermometer-tube">
-                    <div class="thermometer-liquid" id="thermometerLiquid"></div>
-                </div>
-                <div class="thermometer-bulb"></div>
+    <!-- Top Section -->
+    <section class="top-section" style="background-image: url('static/assets/img/background.jpeg');">
+        <div class="top-section-content">
+            <div class="container px-5">
+                <h2 id="top-section-bg-text" class="text-white display-3 lh-1 font-alt"></h2>
             </div>
-            <div class="current-temp" id="currentTemp">28°C</div>
+        </div>
+    </section>
+    <!-- Top Section -->
+
+    <!-- Photo -->
+    <div class="container px-5">
+        <div id="avatar">
+            <img class="shadow" src="static/assets/img/photo.png">
         </div>
     </div>
+    <!-- Photo -->
 
-    <script>
-        let isOn = false;
-        let targetTemp = 26;
-        let currentTemp = 28;
-        let coolingInterval;
+    <!-- Home -->
+    <section class="bg-gradient-primary-to-secondary-light mt5 md5" id="home">
+        <div class="container px-5">
+            <header>
+                <h2 id="home-subtitle"> </h2>
+                <!-- <span class="bi bi-list"></span> -->
+            </header>
+            <div class="main-body" id="home-md"></div>
+        </div>
+    </section>
+    <!-- Home -->
 
-        const displayTemp = document.getElementById('displayTemp');
-        const statusText = document.getElementById('statusText');
-        const powerBtn = document.getElementById('powerBtn');
-        const airFlow = document.getElementById('airFlow');
-        const statusIndicator = document.getElementById('statusIndicator');
-        const coolingEffect = document.getElementById('coolingEffect');
-        const thermometerLiquid = document.getElementById('thermometerLiquid');
-        const currentTempDisplay = document.getElementById('currentTemp');
+    <!-- Awards -->
+    <section class="bg-gradient-primary-to-secondary-light mt5 md5" id="awards">
+        <div class="container px-5">
+            <header>
+                <h2 id="awards-subtitle"><i class="bi bi-award-fill"></i>AWARDS </h2>
+            </header>
+            <div class="main-body" id="awards-md"></div>
 
-        function updateDisplay() {
-            displayTemp.textContent = targetTemp + '°C';
-            
-            if (isOn) {
-                statusText.textContent = '运行中';
-                powerBtn.textContent = '关闭空调';
-                powerBtn.classList.add('off');
-                airFlow.classList.add('active');
-                statusIndicator.classList.add('on');
-                coolingEffect.classList.add('active');
-            } else {
-                statusText.textContent = '已关闭';
-                powerBtn.textContent = '开启空调';
-                powerBtn.classList.remove('off');
-                airFlow.classList.remove('active');
-                statusIndicator.classList.remove('on');
-                coolingEffect.classList.remove('active');
-            }
-            
-            updateThermometer();
-        }
+        </div>
+    </section>
+    <!-- Awards -->
 
-        function adjustTemp(change) {
-            targetTemp = Math.max(16, Math.min(30, targetTemp + change));
-            updateDisplay();
-            
-            if (isOn) {
-                playClickSound();
-            }
-        }
+    <!-- Experience -->
+    <section class="bg-gradient-primary-to-secondary-dark mt5 md5" id="experience">
+        <div class="container px-5">
+            <header>
+                <h2 id="experience-subtitle"><i class="bi bi-briefcase-fill"></i> EXPERIENCE </h2>
+            </header>
+            <div class="main-body" id="experience-md"></div>
+        </div>
+    </section>
+    <!-- Experience -->
 
-        function togglePower() {
-            isOn = !isOn;
-            updateDisplay();
-            playClickSound();
-            
-            if (isOn) {
-                startCooling();
-            } else {
-                stopCooling();
-            }
-        }
+    <!-- Publications -->
+    <section class="bg-gradient-primary-to-secondary-gray mt5 md5" id="publications">
+        <div class="container px-5">
+            <header>
+                <h2 id="publications-subtitle"><i class="bi bi-file-text-fill"></i>&nbsp;PUBLICATIONS</h2>
+            </header>
+            <div class="main-body" id="publications-md"></div>
 
-        function startCooling() {
-            coolingInterval = setInterval(() => {
-                if (Math.abs(currentTemp - targetTemp) > 0.1) {
-                    if (currentTemp > targetTemp) {
-                        currentTemp -= 0.1;
-                    } else {
-                        currentTemp += 0.1;
-                    }
-                    updateThermometer();
-                }
-            }, 200);
-        }
+        </div>
+    </section>
+    <!-- Publications  -->
 
-        function stopCooling() {
-            if (coolingInterval) {
-                clearInterval(coolingInterval);
-                coolingInterval = null;
-            }
-            
-            // Gradually return to room temperature when off
-            coolingInterval = setInterval(() => {
-                if (Math.abs(currentTemp - 28) > 0.1) {
-                    if (currentTemp < 28) {
-                        currentTemp += 0.05;
-                    } else {
-                        currentTemp -= 0.05;
-                    }
-                    updateThermometer();
-                } else {
-                    clearInterval(coolingInterval);
-                    coolingInterval = null;
-                }
-            }, 300);
-        }
+    <!-- Footer-->
+    <footer class="bg-bottom text-center py-5">
+        <div class="container px-5">
+            <div class="text-white-50 small">
+                <div id="copyright-text" class="mb-2"></div>
+                <a id="github-link" href="https://github.com/senli1073">Github</a>
+                <span class="mx-1">&middot;</span>
+                <a id="license-link"
+                    href="https://github.com/senli1073/senli1073.github.io/blob/main/LICENSE">License</a>
+            </div>
+        </div>
+    </footer>
 
-        function updateThermometer() {
-            const minTemp = 16;
-            const maxTemp = 32;
-            const percentage = Math.max(0, Math.min(100, ((currentTemp - minTemp) / (maxTemp - minTemp)) * 100));
-            
-            thermometerLiquid.style.height = percentage + '%';
-            
-            // Change color based on temperature
-            if (currentTemp <= 20) {
-                thermometerLiquid.style.background = 'linear-gradient(to top, #3399ff, #66b3ff)';
-            } else if (currentTemp <= 26) {
-                thermometerLiquid.style.background = 'linear-gradient(to top, #44ff44, #66ff66)';
-            } else {
-                thermometerLiquid.style.background = 'linear-gradient(to top, #ff4444, #ff6666)';
-            }
-            
-            currentTempDisplay.textContent = Math.round(currentTemp * 10) / 10 + '°C';
-        }
-
-        function playClickSound() {
-            // Create a simple click sound using Web Audio API
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            oscillator.frequency.value = 800;
-            oscillator.type = 'sine';
-            
-            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-            
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.1);
-        }
-
-        // Initialize
-        updateDisplay();
-        updateThermometer();
-
-        // Add keyboard controls
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowUp') {
-                adjustTemp(1);
-            } else if (e.key === 'ArrowDown') {
-                adjustTemp(-1);
-            } else if (e.key === ' ') {
-                e.preventDefault();
-                togglePower();
-            }
-        });
-
-        // Add some ambient animation
-        setInterval(() => {
-            if (isOn && Math.random() < 0.1) {
-                // Random temperature fluctuation when on
-                currentTemp += (Math.random() - 0.5) * 0.1;
-                updateThermometer();
-            }
-        }, 1000);
-    </script>
 </body>
+
 </html>

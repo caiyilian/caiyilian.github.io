@@ -1,20 +1,23 @@
-[![XX](https://img.shields.io/badge/XX-github-blue?logo=github)](https://github.com/XX)
+[![蔡依炼](https://img.shields.io/badge/蔡依炼-github-blue?logo=github)](https://github.com/caiyilian)
 
-I'm currently pursuing a Master's degree in XX at the Department of XX, XX University, XX.
+我目前是华南师范大学信息工程专业的本科生，即将于2024年6月毕业。我对人工智能、机器学习和计算机视觉领域充满热情。
 
-#### Email  
-<code>XX@XX.XX</code>  
-<code>XX@XX.XX</code>
+#### 联系方式  
+📧 <code>2216098934@qq.com</code>  
+📱 <code>189-4803-7885</code>  
+📍 广州市番禺区
 
-#### Education  
-**XX University**, Master of XX (XX – XX)  
-• GPA: XX/XX  
+#### 教育背景  
+**华南师范大学**, 信息工程学士学位 (2020.09 – 2024.06)  
+• 平均绩点: 3.92/5.00  
+• 专业排名: 4/64  
+• 英语水平: CET-6  
 
-**XX University**, Exchange student <br>  
-• As a XX, represented my college as an outstanding student for a XX exchange program.  
+#### 主修课程  
+Python程序设计与应用、概率论与数理统计、信号与系统、线性代数、高等数学等
 
-**XX University**, Honours Bachelor of XX (XX – XX)  
-• GPA: XX/XX (top XX%)  
+#### 荣誉奖励  
+获国家励志奖学金2次、校一等奖学金1次、校三等奖学金1次、优秀学生社团干部等
 
-#### Research Interests  
-XX, XX, XX, XX.
+#### 研究兴趣  
+人工智能、机器学习、计算机视觉、深度学习、机器人技术

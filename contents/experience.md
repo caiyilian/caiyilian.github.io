@@ -1,21 +1,39 @@
-### **Software Engineer Intern**  
-**January 2025 – June 2025 | ByteDance**  
+### **华为人工智能教育机器人项目团队**  
+**2021.09 – 2023.05**  
 
-Worked on the development and optimization of large-scale recommendation systems, focusing on algorithm improvements and system efficiency enhancements. Contributed to real-time data processing pipelines and model optimization for personalized content delivery.
+负责control库中视觉人工智能在线用户的K12 AI教育的优化编程软件中的编程环境开发，涉及计算机视觉、语音、机器学习及机器人控制等方面。
 
-#### Key Contributions:  
-- Developed and optimized recommendation algorithms to enhance user engagement and content relevance.  
-- Designed and implemented real-time data processing workflows to improve model inference efficiency.  
-- Conducted A/B testing and performance analysis to refine recommendation strategies based on user behavior data.  
+#### 个人工作:  
+- 负责control库中视觉库，语音库及机器学习库的开发和维护  
+- 对Python的零基础进行了7次大培训，熟练使用OpenCV、numpy、sklearn等实现相关功能  
+- 熟练使用pytorch、paddlepaddle进行深度学习实践的开发和调试，熟练Linux常用操作  
+
+#### 项目地址:  
+- **control库**: [https://github.com/HuaGuangEdu/control](https://github.com/HuaGuangEdu/control)  
+- **TotalCases**: [https://github.com/caiyilian/TotalCases](https://github.com/caiyilian/TotalCases)  
 
 ---
 
-### **软件工程师实习生**  
-**2025年1月 – 2025年6月 | 字节跳动**  
+### **比赛经历**  
 
-负责大规模推荐系统的开发与优化，专注于算法改进和系统效率提升。参与实时数据处理管道的构建，并优化模型推理流程，以提升个性化内容推荐效果。
+#### **2023年全国大学生光电设计大赛**  
+**2023年7月 | 东南赛区三等奖**  
+主要负责路径规划算法、激光雷达避障项目。  
+**项目地址**: [https://github.com/night5879/2023guangshe_xiao](https://github.com/night5879/2023guangshe_xiao)  
 
-#### 主要贡献:  
-- 研发并优化推荐算法，提高用户互动率和内容相关性。  
-- 设计并实现实时数据处理流程，提升模型推理的计算效率。  
-- 进行A/B测试与性能分析，基于用户行为数据优化推荐策略。
+#### **2022年广东大学生电子设计竞赛**  
+**2022年7月 | 省级三等奖**  
+负责基于ROS机器人运动算法的设计。  
+**项目地址**: [https://github.com/caiyilian/INTELLIGENT-FOOD-DELIVERY-ROBOT](https://github.com/caiyilian/INTELLIGENT-FOOD-DELIVERY-ROBOT)  
+
+#### **2022年Holtek Clamping Ball竞赛**  
+**2022年6月 | 省级三等奖**  
+负责基于子volov2的足球识别算法，机器人运动算法的设计。  
+**项目地址**: [https://github.com/caiyilian/Holtek_ClampingBall](https://github.com/caiyilian/Holtek_ClampingBall)  
+
+#### **2022年华南师范大学生七届光电设计大赛**  
+**2022年5月 | 省级三等奖**  
+主要负责小车巡线轨迹算法的设计。  
+
+#### **2021年加入第十三届全国大学生数学竞赛**  
+**2021年11月 | 省级三等奖**
