@@ -77,6 +77,113 @@
     <script type="text/javascript" src="static/js/scripts.js"></script>
     <script type="text/javascript" src="static/js/js-yaml.min.js"></script>
 
+    <!-- Live2D CSS -->
+    <style>
+        /* Waifu样式 */
+        .waifu {
+            position: fixed;
+            bottom: 0;
+            right: 65px;
+            z-index: 9999;
+            font-size: 0;
+            transition: all .3s ease-in-out;
+            -webkit-transform: translateY(3px);
+            transform: translateY(3px);
+            cursor: grab;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        
+        .waifu:active {
+            cursor: grabbing;
+        }
+
+        .waifu:hover {
+            -webkit-transform: translateY(0);
+            transform: translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            .waifu {
+                display: none;
+            }
+        }
+
+        .waifu-tips {
+            opacity: 0;
+            width: 250px;
+            height: 70px;
+            margin: -20px 20px;
+            padding: 5px 10px;
+            border: 1px solid rgba(224, 186, 140, 0.62);
+            border-radius: 12px;
+            background-color: rgba(236, 217, 188, 0.5);
+            box-shadow: 0 3px 15px 2px rgba(191, 158, 118, 0.2);
+            font-size: 12px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            position: absolute;
+            animation-delay: 5s;
+            animation-duration: 50s;
+            animation-iteration-count: infinite;
+            animation-name: shake;
+            animation-timing-function: ease-in-out;
+        }
+
+        .waifu-tool {
+            display: none;
+            color: #aaa;
+            top: 50px;
+            right: 10px;
+            font-size: 14px;
+            position: absolute;
+        }
+
+        .waifu:hover .waifu-tool {
+            display: block;
+        }
+
+        .waifu-tool span {
+            display: block;
+            cursor: pointer;
+            color: #5b6c7d;
+            line-height: 20px;
+            transition: 0.2s;
+        }
+
+        .waifu-tool span:hover {
+            color: #34495e;
+        }
+
+        .waifu #live2d {
+            position: relative;
+        }
+
+        @keyframes shake {
+            2% {
+                transform: translate(0.5px, -1.5px) rotate(-0.5deg);
+            }
+
+            4% {
+                transform: translate(0.5px, 1.5px) rotate(1.5deg);
+            }
+
+            6% {
+                transform: translate(1.5px, 1.5px) rotate(1.5deg);
+            }
+
+            8% {
+                transform: translate(2.5px, 1.5px) rotate(0.5deg);
+            }
+
+            10% {
+                transform: translate(0.5px, 2.5px) rotate(0.5deg);
+            }
+        }
+    </style>
+
 </head>
 
 <body id="page-top">
@@ -186,6 +293,313 @@
             </div>
         </div>
     </footer>
+
+    <!-- Live2D Waifu -->
+    <div class="waifu">
+        <div class="waifu-tips"></div>
+        <canvas id="live2d" width="280" height="250"></canvas>
+        <div class="waifu-tool">
+            <span class="fui-home">🏠</span>
+            <span class="fui-chat">💬</span>
+            <span class="fui-eye">👁</span>
+            <span class="fui-user">👤</span>
+            <span class="fui-photo">📷</span>
+            <span class="fui-info-circle">ℹ</span>
+            <span class="fui-cross">❌</span>
+        </div>
+    </div>
+
+    <!-- Live2D Scripts -->
+    <script src="static/js/jquery.min.js"></script>
+    <script src="static/js/live2d.js"></script>
+    <script src="static/js/waifu-tips.js"></script>
+
+    <!-- Live2D Functionality -->
+    <script>
+        // 字符串模板渲染函数
+        String.prototype.render = function (context) {
+            var tokenReg = /(\\)?\{([^\{\}\\]+)(\\)?\}/g;
+            return this.replace(tokenReg, function (word, slash1, token, slash2) {
+                if (slash1 || slash2) {
+                    return word.replace('\\', '');
+                }
+                var variables = token.replace(/\s/g, '').split('.');
+                var currentObject = context;
+                var i, length, variable;
+                for (i = 0, length = variables.length; i < length; ++i) {
+                    variable = variables[i];
+                    currentObject = currentObject[variable];
+                    if (currentObject === undefined || currentObject === null) return '';
+                }
+                return currentObject;
+            });
+        };
+
+        // 控制台彩蛋
+        var re = /x/;
+        console.log(re);
+        re.toString = function () {
+            showMessage('哈哈，你打开了控制台，是想要看看我的秘密吗？', 5000, true);
+            return '';
+        };
+
+        // 复制监听
+        $(document).on('copy', function () {
+            showMessage('你都复制了些什么呀，转载要记得加上出处哦~', 5000, true);
+        });
+
+        // 工具栏点击事件
+        $('.waifu-tool .fui-home').click(function () {
+            window.location = window.location.protocol + '//' + window.location.hostname + '/';
+        });
+
+        $('.waifu-tool .fui-eye').click(function () {
+            loadOtherModel();
+        });
+
+        $('.waifu-tool .fui-chat').click(function () {
+            showHitokoto();
+        });
+
+        $('.waifu-tool .fui-user').click(function () {
+            loadRandModel();
+        });
+
+        $('.waifu-tool .fui-info-circle').click(function () {
+            window.open('https://github.com/yixin0313');
+        });
+
+        $('.waifu-tool .fui-cross').click(function () {
+            sessionStorage.setItem('waifu-dsiplay', 'none');
+            showMessage('愿你有一天能与重要的人重逢~', 1300, true);
+            window.setTimeout(function () { $('.waifu').hide(); }, 1300);
+        });
+
+        $('.waifu-tool .fui-photo').click(function () {
+            showMessage('照好了嘛，是不是很可爱呢？', 5000, true);
+            if (window.Live2D) {
+                window.Live2D.captureName = 'Pio.png';
+                window.Live2D.captureFrame = true;
+            }
+        });
+
+        // 初始化欢迎消息
+        (function () {
+            var text;
+            var now = (new Date()).getHours();
+            if (now > 23 || now <= 5) {
+                text = '你是夜猫子呀？这么晚还不睡觉，明天起的来嘛';
+            } else if (now > 5 && now <= 7) {
+                text = '早上好！一日之计在于晨，美好的一天就要开始了';
+            } else if (now > 7 && now <= 9) {
+                text = '上午好！工作顺利嘛，不要久坐，多起来走动走动哦！';
+            } else if (now > 11 && now <= 13) {
+                text = '中午了，工作了一个上午，现在是午餐时间！';
+            } else if (now > 13 && now <= 14) {
+                text = '午后很容易犯困呢，还是休息一下吧~';
+            } else if (now > 14 && now <= 16) {
+                text = '忙碌的下午，一起努力吧！';
+            } else if (now > 17 && now <= 19) {
+                text = '傍晚了！窗外夕阳的景色很美丽呢，最美不过夕阳红~';
+            } else if (now > 19 && now <= 21) {
+                text = '晚上好，今天过得怎么样？';
+            } else if (now > 22 && now <= 24) {
+                text = '已经这么晚了呀，早点休息吧，晚安~';
+            } else {
+                text = '嗨~ master快来逗我玩吧！';
+            }
+
+            setTimeout(function () {
+                showMessage(text, 6000);
+            }, 2000);
+        })();
+
+        // 一言功能
+        function showHitokoto() {
+            $.getJSON('https://v1.hitokoto.cn/?encode=json', function (result) {
+                var text = '这句一言出处是 <span style="color:#0099cc;">『{from}』</span>';
+                text = text.render({ from: result.from });
+                showMessage(result.hitokoto, 5000);
+                window.setTimeout(function () { showMessage(text, 3000); }, 5000);
+            }).fail(function () {
+                showMessage('获取一言失败，请检查网络连接~', 3000);
+            });
+        }
+
+        // 显示消息
+        function showMessage(text, timeout, flag) {
+            if (flag || sessionStorage.getItem('waifu-text') === '' || sessionStorage.getItem('waifu-text') === null) {
+                if (Array.isArray(text)) text = text[Math.floor(Math.random() * text.length)];
+
+                if (flag) sessionStorage.setItem('waifu-text', text);
+
+                $('.waifu-tips').stop();
+                $('.waifu-tips').html(text).fadeTo(200, 1);
+                if (timeout === undefined) timeout = 5000;
+                hideMessage(timeout);
+            }
+        }
+
+        function hideMessage(timeout) {
+            $('.waifu-tips').stop().css('opacity', 1);
+            if (timeout === undefined) timeout = 5000;
+            window.setTimeout(function () { sessionStorage.removeItem('waifu-text') }, timeout);
+            $('.waifu-tips').delay(timeout).fadeTo(200, 0);
+        }
+
+        // 模型加载函数
+        function loadModel(modelId, modelTexturesId) {
+            if (typeof loadlive2d === 'function') {
+                localStorage.setItem('modelId', modelId);
+                if (modelTexturesId === undefined) modelTexturesId = 0;
+                localStorage.setItem('modelTexturesId', modelTexturesId);
+                loadlive2d('live2d', 'https://live2d.jixiaob.cn/get/?id=' + modelId + '-' + modelTexturesId);
+            }
+        }
+
+        function loadRandModel() {
+            var modelId = localStorage.getItem('modelId') || 1;
+            var modelTexturesId = localStorage.getItem('modelTexturesId') || 0;
+
+            $.ajax({
+                cache: false,
+                url: 'https://live2d.jixiaob.cn/switch_textures/?id=' + modelId + '-' + modelTexturesId,
+                dataType: "json",
+                success: function (result) {
+                    if (result.textures && result.textures.id == 1 && (modelTexturesId == 1 || modelTexturesId == 0)) {
+                        showMessage('我还没有其他衣服呢', 3000, true);
+                    } else {
+                        showMessage('我的新衣服好看嘛', 3000, true);
+                    }
+                    if (result.textures) {
+                        loadModel(modelId, result.textures.id);
+                    }
+                },
+                error: function () {
+                    showMessage('换装失败，请稍后再试~', 3000, true);
+                }
+            });
+        }
+
+        function loadOtherModel() {
+            var modelId = localStorage.getItem('modelId') || 1;
+
+            $.ajax({
+                cache: false,
+                url: 'https://live2d.jixiaob.cn/switch/?id=' + modelId,
+                dataType: "json",
+                success: function (result) {
+                    if (result.model) {
+                        loadModel(result.model.id);
+                        showMessage(result.model.message || '新的朋友来了~', 3000, true);
+                    }
+                },
+                error: function () {
+                    showMessage('切换模型失败，请稍后再试~', 3000, true);
+                }
+            });
+        }
+
+        // 鼠标交互
+        $(document).on('mouseover', '#live2d', function () {
+            var texts = ['你好呀~', '欢迎来到我的世界！', '今天过得怎么样？'];
+            var text = texts[Math.floor(Math.random() * texts.length)];
+            showMessage(text, 3000);
+        });
+
+        $(document).on('click', '#live2d', function () {
+            var texts = ['是…是不是想摸我呀？', 'kyaa~好害羞！', '请…请轻一点…'];
+            var text = texts[Math.floor(Math.random() * texts.length)];
+            showMessage(text, 3000, true);
+        });
+
+        // 拖拽功能
+        var isDragging = false;
+        var dragOffset = { x: 0, y: 0 };
+        
+        $('.waifu').on('mousedown', function(e) {
+            // 防止在点击工具栏时触发拖拽
+            if ($(e.target).closest('.waifu-tool').length > 0) {
+                return;
+            }
+            
+            isDragging = true;
+            var waifuPos = $(this).offset();
+            dragOffset.x = e.clientX - waifuPos.left;
+            dragOffset.y = e.clientY - waifuPos.top;
+            
+            // 改变鼠标样式
+            $(this).css('cursor', 'grabbing');
+            
+            // 防止文本选择
+            e.preventDefault();
+        });
+        
+        $(document).on('mousemove', function(e) {
+            if (isDragging) {
+                var newX = e.clientX - dragOffset.x;
+                var newY = e.clientY - dragOffset.y;
+                
+                // 限制拖拽范围，防止拖出屏幕
+                var windowWidth = $(window).width();
+                var windowHeight = $(window).height();
+                var waifuWidth = $('.waifu').outerWidth();
+                var waifuHeight = $('.waifu').outerHeight();
+                
+                newX = Math.max(0, Math.min(newX, windowWidth - waifuWidth));
+                newY = Math.max(0, Math.min(newY, windowHeight - waifuHeight));
+                
+                // 实时更新位置
+                $('.waifu').css({
+                    'position': 'fixed',
+                    'left': newX + 'px',
+                    'top': newY + 'px',
+                    'right': 'auto',
+                    'bottom': 'auto'
+                });
+                
+                // 保存位置到localStorage
+                localStorage.setItem('waifuPosition', JSON.stringify({x: newX, y: newY}));
+            }
+        });
+        
+        $(document).on('mouseup', function() {
+            if (isDragging) {
+                isDragging = false;
+                $('.waifu').css('cursor', 'grab');
+            }
+        });
+        
+        // 恢复保存的位置
+        function restoreWaifuPosition() {
+            var savedPosition = localStorage.getItem('waifuPosition');
+            if (savedPosition) {
+                var pos = JSON.parse(savedPosition);
+                $('.waifu').css({
+                    'position': 'fixed',
+                    'left': pos.x + 'px',
+                    'top': pos.y + 'px',
+                    'right': 'auto',
+                    'bottom': 'auto'
+                });
+            }
+        }
+        
+        // 初始化模型
+        $(document).ready(function() {
+            // 恢复位置
+            restoreWaifuPosition();
+            
+            // 设置初始鼠标样式
+            $('.waifu').css('cursor', 'grab');
+            
+            setTimeout(function() {
+                var modelId = localStorage.getItem('modelId') || 1;
+                var modelTexturesId = localStorage.getItem('modelTexturesId') || 87;
+                loadModel(modelId, modelTexturesId);
+            }, 1000);
+        });
+    </script>
 
 </body>
 
