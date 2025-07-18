@@ -69,7 +69,9 @@
     }
 
     // 模型加载函数
-    function loadModel(modelId, modelTexturesId) {
+    function loadModel(modelId, modelTexturesId, retryCount) {
+        if (retryCount === undefined) retryCount = 0;
+        
         if (typeof loadlive2d === 'function') {
             try {
                 localStorage.setItem('modelId', modelId);
@@ -77,16 +79,53 @@
                 localStorage.setItem('modelTexturesId', modelTexturesId);
 
                 var modelUrl = 'https://live2d.jixiaob.cn/get/?id=' + modelId + '-' + modelTexturesId;
-                console.log('Loading Live2D model:', modelUrl);
+                console.log('Loading Live2D model:', modelUrl, 'retry:', retryCount);
+
+                // 检查canvas元素是否存在
+                var canvas = document.getElementById('live2d');
+                if (!canvas) {
+                    console.error('Live2D canvas元素不存在');
+                    if (retryCount < 3) {
+                        setTimeout(function() {
+                            loadModel(modelId, modelTexturesId, retryCount + 1);
+                        }, 1000);
+                    }
+                    return;
+                }
 
                 loadlive2d('live2d', modelUrl);
+                
+                // 添加加载超时检测
+                setTimeout(function() {
+                    var canvas = document.getElementById('live2d');
+                    if (canvas && canvas.style.display === 'none') {
+                        console.warn('Live2D模型可能加载失败，尝试重新加载');
+                        if (retryCount < 2) {
+                            loadModel(modelId, modelTexturesId, retryCount + 1);
+                        }
+                    }
+                }, 5000);
+                
             } catch (error) {
                 console.error('Live2D模型加载失败:', error);
-                showMessage('模型加载失败，请刷新页面重试', 3000, true);
+                if (retryCount < 3) {
+                    console.log('尝试重新加载模型，重试次数:', retryCount + 1);
+                    setTimeout(function() {
+                        loadModel(modelId, modelTexturesId, retryCount + 1);
+                    }, 2000);
+                } else {
+                    showMessage('模型加载失败，请刷新页面重试', 3000, true);
+                }
             }
         } else {
             console.error('loadlive2d函数未定义，请检查Live2D库是否正确加载');
-            showMessage('Live2D库未正确加载', 3000, true);
+            if (retryCount < 3) {
+                setTimeout(function() {
+                    loadModel(modelId, modelTexturesId, retryCount + 1);
+                }, 1000);
+            } else {
+                showMessage('Live2D库未正确加载', 3000, true);
+            }
         }
     }
 
@@ -464,20 +503,29 @@
 
     // 初始化模型
     function initModel() {
-        // 确保Live2D库已加载
+        // 确保Live2D库和canvas元素都已准备就绪
         function waitForLive2D() {
-            if (typeof loadlive2d !== 'undefined') {
+            var canvas = document.getElementById('live2d');
+            if (typeof loadlive2d !== 'undefined' && canvas) {
                 var modelId = localStorage.getItem('modelId') || 1;
                 var modelTexturesId = localStorage.getItem('modelTexturesId') || 87;
                 console.log('初始化Live2D模型，modelId:', modelId, 'texturesId:', modelTexturesId);
-                loadModel(modelId, modelTexturesId);
+                
+                // 添加额外的延迟确保DOM完全准备就绪
+                setTimeout(function() {
+                    loadModel(modelId, modelTexturesId);
+                }, 200);
             } else {
-                console.log('等待Live2D库加载...');
-                setTimeout(waitForLive2D, 500);
+                console.log('等待Live2D库和DOM元素加载...', {
+                    loadlive2d: typeof loadlive2d !== 'undefined',
+                    canvas: !!canvas
+                });
+                setTimeout(waitForLive2D, 300);
             }
         }
 
-        setTimeout(waitForLive2D, 1000);
+        // 增加初始延迟，确保所有脚本都已加载
+        setTimeout(waitForLive2D, 1500);
     }
 
     // 初始化函数

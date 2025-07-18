@@ -179,6 +179,82 @@
 }
 
 /* 响应式设计 */
+/* 贪吃蛇游戏样式 */
+.snake-game-window {
+    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+    border-radius: 20px;
+    padding: 0;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    max-width: 480px;
+    width: 90%;
+    animation: slideIn 0.3s ease;
+    overflow: hidden;
+}
+
+.snake-info {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-around;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.snake-game-area {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+#snake-canvas {
+    border-radius: 10px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    background: #2c3e50;
+    border: 2px solid #34495e;
+}
+
+.snake-game-over {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.snake-final-score {
+    font-size: 18px;
+    color: #27ae60;
+    margin-bottom: 15px;
+}
+
+.snake-start-screen {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* 响应式设计 */
 @media (max-width: 600px) {
     .game-selector-content {
         grid-template-columns: 1fr;
@@ -206,6 +282,27 @@
     
     .flappy-game-window {
         width: 95%;
+    }
+    
+    .snake-game-window {
+        width: 95%;
+    }
+    
+    #snake-canvas {
+        width: 100%;
+        max-width: 350px;
+        height: auto;
+    }
+    
+    .snake-info {
+        padding: 10px 15px;
+        font-size: 14px;
+    }
+    
+    .snake-game-over,
+    .snake-start-screen {
+        padding: 20px;
+        font-size: 14px;
     }
 }
 
