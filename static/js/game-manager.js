@@ -36,6 +36,18 @@
                         <h3>俄罗斯方块</h3>
                         <p>旋转和移动方块，消除完整行！</p>
                     </div>
+                    
+                    <div class="game-option" id="select-sudoku">
+                        <div class="game-icon">🔢</div>
+                        <h3>数独</h3>
+                        <p>填入数字，完成9x9数独谜题！</p>
+                    </div>
+                    
+                    <div class="game-option" id="select-sliding-puzzle">
+                        <div class="game-icon">🧩</div>
+                        <h3>数字华容道</h3>
+                        <p>移动数字方块，按顺序排列！</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -199,6 +211,85 @@
         `;
 
         document.body.insertAdjacentHTML('beforeend', tetrisHTML);
+    }
+
+    // 数独游戏HTML
+    function injectSudokuHTML() {
+        var sudokuHTML = `
+        <div class="game-modal" id="sudoku-modal">
+            <div class="sudoku-game-window">
+                <div class="game-header">
+                    <h2 class="game-title">🔢 数独</h2>
+                    <button class="game-close" id="sudoku-close">×</button>
+                </div>
+
+                <div class="sudoku-info">
+                    <div class="score-container">
+                        <div class="score-label">难度</div>
+                        <div class="score-value" id="sudoku-difficulty">简单</div>
+                    </div>
+                    <div class="score-container">
+                        <div class="score-label">时间</div>
+                        <div class="score-value" id="sudoku-time">00:00</div>
+                    </div>
+                    <div class="score-container">
+                        <div class="score-label">错误</div>
+                        <div class="score-value" id="sudoku-errors">0</div>
+                    </div>
+                </div>
+
+                <div class="sudoku-game-area">
+                    <div class="sudoku-main">
+                        <div class="sudoku-grid" id="sudoku-grid"></div>
+                        <div class="sudoku-side">
+                            <div class="sudoku-controls">
+                                <div class="controls-title">操作说明</div>
+                                <div class="control-item">点击格子选择</div>
+                                <div class="control-item">1-9 输入数字</div>
+                                <div class="control-item">Del/Backspace 清除</div>
+                                <div class="control-item">ESC 退出游戏</div>
+                            </div>
+                            <div class="sudoku-numbers">
+                                <div class="numbers-title">数字选择</div>
+                                <div class="number-buttons">
+                                    <button class="number-btn" data-number="1">1</button>
+                                    <button class="number-btn" data-number="2">2</button>
+                                    <button class="number-btn" data-number="3">3</button>
+                                    <button class="number-btn" data-number="4">4</button>
+                                    <button class="number-btn" data-number="5">5</button>
+                                    <button class="number-btn" data-number="6">6</button>
+                                    <button class="number-btn" data-number="7">7</button>
+                                    <button class="number-btn" data-number="8">8</button>
+                                    <button class="number-btn" data-number="9">9</button>
+                                    <button class="number-btn clear-btn" data-number="0">清除</button>
+                                </div>
+                            </div>
+                            <div class="sudoku-actions">
+                                <button class="game-btn" id="sudoku-new-game">新游戏</button>
+                                <button class="game-btn" id="sudoku-hint">提示</button>
+                                <button class="game-btn" id="sudoku-check">检查</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sudoku-game-over" id="sudoku-game-over">
+                        <div class="game-over-text" id="sudoku-game-over-text">恭喜完成！</div>
+                        <div class="sudoku-final-time" id="sudoku-final-time">用时: 00:00</div>
+                        <button class="game-btn" id="sudoku-restart">再来一局</button>
+                    </div>
+                    <div class="sudoku-start-screen" id="sudoku-start-screen">
+                        <div class="start-text">选择难度开始游戏</div>
+                        <div class="difficulty-buttons">
+                            <button class="difficulty-btn" data-difficulty="easy">简单</button>
+                            <button class="difficulty-btn" data-difficulty="medium">中等</button>
+                            <button class="difficulty-btn" data-difficulty="hard">困难</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', sudokuHTML);
     }
 
     // 俄罗斯方块游戏逻辑
@@ -676,6 +767,384 @@
 
             // 重置游戏状态
             tetrisGame.gameState = 'start';
+        }
+    }
+
+    // 数独游戏逻辑
+    var sudokuGame = {
+        grid: [],
+        solution: [],
+        selectedCell: null,
+        difficulty: 'easy',
+        startTime: null,
+        gameTime: 0,
+        errors: 0,
+        gameState: 'start', // 'start', 'playing', 'completed'
+        timer: null
+    };
+
+    function initSudokuGame() {
+        resetSudokuGame();
+        createSudokuGrid();
+        bindSudokuEvents();
+    }
+
+    function resetSudokuGame() {
+        sudokuGame.grid = Array(9).fill().map(() => Array(9).fill(0));
+        sudokuGame.solution = Array(9).fill().map(() => Array(9).fill(0));
+        sudokuGame.selectedCell = null;
+        sudokuGame.startTime = null;
+        sudokuGame.gameTime = 0;
+        sudokuGame.errors = 0;
+        sudokuGame.gameState = 'start';
+        if (sudokuGame.timer) {
+            clearInterval(sudokuGame.timer);
+            sudokuGame.timer = null;
+        }
+        updateSudokuDisplay();
+    }
+
+    function createSudokuGrid() {
+        var gridElement = document.getElementById('sudoku-grid');
+        if (!gridElement) return;
+
+        gridElement.innerHTML = '';
+        
+        for (var i = 0; i < 9; i++) {
+            for (var j = 0; j < 9; j++) {
+                var cell = document.createElement('div');
+                cell.className = 'sudoku-cell';
+                cell.dataset.row = i;
+                cell.dataset.col = j;
+                
+                // 添加区域边框样式
+                if (i % 3 === 0 && i !== 0) cell.classList.add('border-top');
+                if (j % 3 === 0 && j !== 0) cell.classList.add('border-left');
+                
+                cell.addEventListener('click', function() {
+                    selectSudokuCell(parseInt(this.dataset.row), parseInt(this.dataset.col));
+                });
+                
+                gridElement.appendChild(cell);
+            }
+        }
+    }
+
+    function generateSudoku(difficulty) {
+        // 生成完整的数独解决方案
+        generateCompleteSudoku();
+        
+        // 根据难度移除数字
+        var cellsToRemove;
+        switch (difficulty) {
+            case 'easy': cellsToRemove = 40; break;
+            case 'medium': cellsToRemove = 50; break;
+            case 'hard': cellsToRemove = 60; break;
+            default: cellsToRemove = 40;
+        }
+        
+        // 复制解决方案到游戏网格
+        for (var i = 0; i < 9; i++) {
+            for (var j = 0; j < 9; j++) {
+                sudokuGame.grid[i][j] = sudokuGame.solution[i][j];
+            }
+        }
+        
+        // 随机移除数字
+        var removed = 0;
+        while (removed < cellsToRemove) {
+            var row = Math.floor(Math.random() * 9);
+            var col = Math.floor(Math.random() * 9);
+            if (sudokuGame.grid[row][col] !== 0) {
+                sudokuGame.grid[row][col] = 0;
+                removed++;
+            }
+        }
+    }
+
+    function generateCompleteSudoku() {
+        // 清空解决方案网格
+        for (var i = 0; i < 9; i++) {
+            for (var j = 0; j < 9; j++) {
+                sudokuGame.solution[i][j] = 0;
+            }
+        }
+        
+        // 使用回溯算法生成完整的数独
+        solveSudoku(sudokuGame.solution);
+    }
+
+    function solveSudoku(grid) {
+        for (var row = 0; row < 9; row++) {
+            for (var col = 0; col < 9; col++) {
+                if (grid[row][col] === 0) {
+                    var numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+                    // 随机打乱数字顺序
+                    for (var i = numbers.length - 1; i > 0; i--) {
+                        var j = Math.floor(Math.random() * (i + 1));
+                        var temp = numbers[i];
+                        numbers[i] = numbers[j];
+                        numbers[j] = temp;
+                    }
+                    
+                    for (var k = 0; k < numbers.length; k++) {
+                        var num = numbers[k];
+                        if (isValidSudokuMove(grid, row, col, num)) {
+                            grid[row][col] = num;
+                            if (solveSudoku(grid)) {
+                                return true;
+                            }
+                            grid[row][col] = 0;
+                        }
+                    }
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    function isValidSudokuMove(grid, row, col, num) {
+        // 检查行
+        for (var j = 0; j < 9; j++) {
+            if (grid[row][j] === num) return false;
+        }
+        
+        // 检查列
+        for (var i = 0; i < 9; i++) {
+            if (grid[i][col] === num) return false;
+        }
+        
+        // 检查3x3区域
+        var boxRow = Math.floor(row / 3) * 3;
+        var boxCol = Math.floor(col / 3) * 3;
+        for (var i = boxRow; i < boxRow + 3; i++) {
+            for (var j = boxCol; j < boxCol + 3; j++) {
+                if (grid[i][j] === num) return false;
+            }
+        }
+        
+        return true;
+    }
+
+    function selectSudokuCell(row, col) {
+        if (sudokuGame.gameState !== 'playing') return;
+        
+        // 移除之前选中的样式
+        var prevSelected = document.querySelector('.sudoku-cell.selected');
+        if (prevSelected) prevSelected.classList.remove('selected');
+        
+        // 选中新单元格
+        var cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+        if (cell) {
+            cell.classList.add('selected');
+            sudokuGame.selectedCell = { row: row, col: col };
+        }
+    }
+
+    function inputSudokuNumber(num) {
+        if (!sudokuGame.selectedCell || sudokuGame.gameState !== 'playing') return;
+        
+        var row = sudokuGame.selectedCell.row;
+        var col = sudokuGame.selectedCell.col;
+        var cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+        
+        if (!cell || cell.classList.contains('given')) return;
+        
+        if (num === 0) {
+            // 清除数字
+            sudokuGame.grid[row][col] = 0;
+            cell.textContent = '';
+            cell.classList.remove('error', 'user-input');
+        } else {
+            // 输入数字
+            sudokuGame.grid[row][col] = num;
+            cell.textContent = num;
+            cell.classList.add('user-input');
+            
+            // 检查是否正确
+            if (sudokuGame.solution[row][col] !== num) {
+                cell.classList.add('error');
+                sudokuGame.errors++;
+                updateSudokuDisplay();
+            } else {
+                cell.classList.remove('error');
+                
+                // 检查是否完成
+                if (isSudokuComplete()) {
+                    sudokuGameComplete();
+                }
+            }
+        }
+    }
+
+    function isSudokuComplete() {
+        for (var i = 0; i < 9; i++) {
+            for (var j = 0; j < 9; j++) {
+                if (sudokuGame.grid[i][j] === 0 || sudokuGame.grid[i][j] !== sudokuGame.solution[i][j]) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    function sudokuGameComplete() {
+        sudokuGame.gameState = 'completed';
+        if (sudokuGame.timer) {
+            clearInterval(sudokuGame.timer);
+        }
+        
+        var finalTime = formatTime(sudokuGame.gameTime);
+        document.getElementById('sudoku-final-time').textContent = '用时: ' + finalTime;
+        document.getElementById('sudoku-game-over').style.display = 'flex';
+    }
+
+    function startSudokuGame(difficulty) {
+        sudokuGame.difficulty = difficulty;
+        sudokuGame.gameState = 'playing';
+        sudokuGame.startTime = Date.now();
+        
+        document.getElementById('sudoku-start-screen').style.display = 'none';
+        document.getElementById('sudoku-game-over').style.display = 'none';
+        
+        generateSudoku(difficulty);
+        renderSudokuGrid();
+        
+        // 开始计时器
+        sudokuGame.timer = setInterval(function() {
+            sudokuGame.gameTime = Math.floor((Date.now() - sudokuGame.startTime) / 1000);
+            updateSudokuDisplay();
+        }, 1000);
+        
+        updateSudokuDisplay();
+    }
+
+    function renderSudokuGrid() {
+        for (var i = 0; i < 9; i++) {
+            for (var j = 0; j < 9; j++) {
+                var cell = document.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+                if (cell) {
+                    cell.textContent = sudokuGame.grid[i][j] || '';
+                    cell.className = 'sudoku-cell';
+                    
+                    // 添加区域边框样式
+                    if (i % 3 === 0 && i !== 0) cell.classList.add('border-top');
+                    if (j % 3 === 0 && j !== 0) cell.classList.add('border-left');
+                    
+                    if (sudokuGame.grid[i][j] !== 0) {
+                        cell.classList.add('given');
+                    }
+                }
+            }
+        }
+    }
+
+    function updateSudokuDisplay() {
+        document.getElementById('sudoku-difficulty').textContent = 
+            sudokuGame.difficulty === 'easy' ? '简单' : 
+            sudokuGame.difficulty === 'medium' ? '中等' : '困难';
+        document.getElementById('sudoku-time').textContent = formatTime(sudokuGame.gameTime);
+        document.getElementById('sudoku-errors').textContent = sudokuGame.errors;
+    }
+
+    function formatTime(seconds) {
+        var mins = Math.floor(seconds / 60);
+        var secs = seconds % 60;
+        return (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
+    }
+
+    function bindSudokuEvents() {
+        // 难度选择按钮
+        var difficultyBtns = document.querySelectorAll('.difficulty-btn');
+        difficultyBtns.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                startSudokuGame(this.dataset.difficulty);
+            });
+        });
+        
+        // 数字按钮
+        var numberBtns = document.querySelectorAll('.number-btn');
+        numberBtns.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                inputSudokuNumber(parseInt(this.dataset.number));
+            });
+        });
+        
+        // 键盘事件
+        document.addEventListener('keydown', function(e) {
+            var modal = document.getElementById('sudoku-modal');
+            if (modal && modal.style.display === 'flex') {
+                if (e.key >= '1' && e.key <= '9') {
+                    e.preventDefault();
+                    inputSudokuNumber(parseInt(e.key));
+                } else if (e.key === 'Delete' || e.key === 'Backspace') {
+                    e.preventDefault();
+                    inputSudokuNumber(0);
+                } else if (e.key === 'Escape') {
+                    closeSudokuGame();
+                }
+            }
+        });
+    }
+
+    function openSudokuGame() {
+        var modal = document.getElementById('sudoku-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+            resetSudokuGame();
+            document.getElementById('sudoku-start-screen').style.display = 'flex';
+            document.getElementById('sudoku-game-over').style.display = 'none';
+        }
+    }
+
+    function closeSudokuGame() {
+        var modal = document.getElementById('sudoku-modal');
+        if (modal) {
+            modal.style.display = 'none';
+            if (sudokuGame.timer) {
+                clearInterval(sudokuGame.timer);
+                sudokuGame.timer = null;
+            }
+        }
+    }
+
+    function restartSudokuGame() {
+        document.getElementById('sudoku-game-over').style.display = 'none';
+        startSudokuGame(sudokuGame.difficulty);
+    }
+
+    function getSudokuHint() {
+        if (!sudokuGame.selectedCell || sudokuGame.gameState !== 'playing') return;
+        
+        var row = sudokuGame.selectedCell.row;
+        var col = sudokuGame.selectedCell.col;
+        var cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+        
+        if (!cell || cell.classList.contains('given')) return;
+        
+        var correctNumber = sudokuGame.solution[row][col];
+        inputSudokuNumber(correctNumber);
+    }
+
+    function checkSudokuSolution() {
+        var hasErrors = false;
+        for (var i = 0; i < 9; i++) {
+            for (var j = 0; j < 9; j++) {
+                var cell = document.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+                if (cell && !cell.classList.contains('given')) {
+                    if (sudokuGame.grid[i][j] !== 0 && sudokuGame.grid[i][j] !== sudokuGame.solution[i][j]) {
+                        cell.classList.add('error');
+                        hasErrors = true;
+                    } else {
+                        cell.classList.remove('error');
+                    }
+                }
+            }
+        }
+        
+        if (!hasErrors && isSudokuComplete()) {
+            sudokuGameComplete();
         }
     }
 
@@ -1213,6 +1682,14 @@
             });
         }
 
+        var selectSudoku = document.getElementById('select-sudoku');
+        if (selectSudoku) {
+            selectSudoku.addEventListener('click', function () {
+                closeGameSelector();
+                openSudokuGame();
+            });
+        }
+
         // 点击背景关闭选择器
         if (selectorModal) {
             selectorModal.addEventListener('click', function (e) {
@@ -1272,6 +1749,33 @@
                 }
             });
         }
+
+        // 数独事件
+        var sudokuClose = document.getElementById('sudoku-close');
+        var sudokuRestart = document.getElementById('sudoku-restart');
+        var sudokuNewGame = document.getElementById('sudoku-new-game');
+        var sudokuHint = document.getElementById('sudoku-hint');
+        var sudokuCheck = document.getElementById('sudoku-check');
+        var sudokuModal = document.getElementById('sudoku-modal');
+
+        if (sudokuClose) sudokuClose.addEventListener('click', closeSudokuGame);
+        if (sudokuRestart) sudokuRestart.addEventListener('click', restartSudokuGame);
+        if (sudokuNewGame) sudokuNewGame.addEventListener('click', function() {
+            document.getElementById('sudoku-start-screen').style.display = 'flex';
+            document.getElementById('sudoku-game-over').style.display = 'none';
+            resetSudokuGame();
+        });
+        if (sudokuHint) sudokuHint.addEventListener('click', getSudokuHint);
+        if (sudokuCheck) sudokuCheck.addEventListener('click', checkSudokuSolution);
+
+        // 点击背景关闭数独
+        if (sudokuModal) {
+            sudokuModal.addEventListener('click', function (e) {
+                if (e.target === sudokuModal) {
+                    closeSudokuGame();
+                }
+            });
+        }
     }
 
     // 初始化
@@ -1280,7 +1784,9 @@
         injectFlappyBirdHTML();
         injectSnakeHTML();
         injectTetrisHTML();
+        injectSudokuHTML();
         bindEvents();
+        initSudokuGame();
     }
 
     // 公开API
@@ -1293,7 +1799,9 @@
         openSnakeGame: openSnakeGame,
         closeSnakeGame: closeSnakeGame,
         openTetrisGame: openTetrisGame,
-        closeTetrisGame: closeTetrisGame
+        closeTetrisGame: closeTetrisGame,
+        openSudokuGame: openSudokuGame,
+        closeSudokuGame: closeSudokuGame
     };
 
     // 自动初始化

@@ -633,3 +633,317 @@
         font-size: 18px;
     }
 }
+
+/* 数独游戏样式 */
+.sudoku-game-window {
+    background: linear-gradient(135deg, #e17055 0%, #d63031 100%);
+    border-radius: 20px;
+    padding: 0;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    max-width: 700px;
+    width: 95%;
+    animation: slideIn 0.3s ease;
+    overflow: hidden;
+}
+
+.sudoku-info {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-around;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.sudoku-game-area {
+    position: relative;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.sudoku-main {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.sudoku-grid {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    grid-template-rows: repeat(9, 1fr);
+    gap: 1px;
+    background: #333;
+    border: 3px solid #333;
+    border-radius: 8px;
+    width: 360px;
+    height: 360px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.sudoku-cell {
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #333;
+    user-select: none;
+}
+
+.sudoku-cell:hover {
+    background: #e8f4fd;
+}
+
+.sudoku-cell.selected {
+    background: #74b9ff !important;
+    color: white;
+}
+
+.sudoku-cell.given {
+    background: #f8f9fa;
+    color: #2d3436;
+    font-weight: 900;
+    cursor: default;
+}
+
+.sudoku-cell.given:hover {
+    background: #f8f9fa;
+}
+
+.sudoku-cell.user-input {
+    background: #dff0d8;
+    color: #3c763d;
+}
+
+.sudoku-cell.error {
+    background: #f2dede !important;
+    color: #a94442 !important;
+}
+
+.sudoku-cell.border-top {
+    border-top: 2px solid #333;
+}
+
+.sudoku-cell.border-left {
+    border-left: 2px solid #333;
+}
+
+.sudoku-side {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 200px;
+}
+
+.sudoku-controls {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 15px;
+}
+
+.sudoku-numbers {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 15px;
+}
+
+.numbers-title {
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 15px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.number-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.number-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.number-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px);
+}
+
+.number-btn.clear-btn {
+    grid-column: span 3;
+    background: rgba(231, 76, 60, 0.8);
+    border-color: rgba(231, 76, 60, 1);
+}
+
+.number-btn.clear-btn:hover {
+    background: rgba(231, 76, 60, 1);
+}
+
+.sudoku-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sudoku-game-over {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.sudoku-final-time {
+    font-size: 18px;
+    color: #e17055;
+    margin-bottom: 15px;
+}
+
+.sudoku-start-screen {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.difficulty-buttons {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.difficulty-btn {
+    background: rgba(225, 112, 85, 0.8);
+    border: 2px solid rgba(225, 112, 85, 1);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.difficulty-btn:hover {
+    background: rgba(225, 112, 85, 1);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* 数独响应式设计 */
+@media (max-width: 768px) {
+    .sudoku-game-window {
+        width: 98%;
+    }
+    
+    .sudoku-main {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .sudoku-grid {
+        width: 300px;
+        height: 300px;
+    }
+    
+    .sudoku-cell {
+        font-size: 16px;
+    }
+    
+    .sudoku-side {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .sudoku-controls,
+    .sudoku-numbers {
+        padding: 12px;
+    }
+    
+    .number-buttons {
+        gap: 6px;
+    }
+    
+    .number-btn {
+        padding: 8px;
+        font-size: 14px;
+    }
+    
+    .sudoku-info {
+        padding: 10px 15px;
+        font-size: 14px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .difficulty-buttons {
+        gap: 10px;
+    }
+    
+    .difficulty-btn {
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .sudoku-grid {
+        width: 270px;
+        height: 270px;
+    }
+    
+    .sudoku-cell {
+        font-size: 14px;
+    }
+    
+    .sudoku-game-over,
+    .sudoku-start-screen {
+        padding: 20px;
+        font-size: 14px;
+    }
+    
+    .score-container {
+        min-width: 60px;
+    }
+    
+    .score-value {
+        font-size: 16px;
+    }
+}
