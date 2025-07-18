@@ -197,7 +197,7 @@
     function toggleBackgroundMode() {
         bgModeActive = !bgModeActive;
         var $body = $('body');
-        
+
         console.log('切换背景模式，当前状态:', bgModeActive);
 
         if (bgModeActive) {
@@ -314,9 +314,9 @@
         $('.waifu-tool .fui-game').off('click.live2d').on('click.live2d', function (e) {
             e.preventDefault();
             e.stopPropagation();
-            showMessage('一起来玩2048游戏吧！', 3000, true);
-            if (window.Game2048) {
-                Game2048.openGame();
+            showMessage('选择你想玩的游戏吧！', 3000, true);
+            if (window.GameManager) {
+                GameManager.openGameSelector();
             }
         });
 
@@ -476,7 +476,7 @@
                 setTimeout(waitForLive2D, 500);
             }
         }
-        
+
         setTimeout(waitForLive2D, 1000);
     }
 
