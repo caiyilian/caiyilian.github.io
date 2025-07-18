@@ -1,5 +1,5 @@
 // 游戏管理器模块
-(function() {
+(function () {
     'use strict';
 
     // 游戏选择器HTML
@@ -40,7 +40,7 @@
             </div>
         </div>
         `;
-        
+
         document.body.insertAdjacentHTML('beforeend', selectorHTML);
     }
 
@@ -80,7 +80,7 @@
             </div>
         </div>
         `;
-        
+
         document.body.insertAdjacentHTML('beforeend', flappyHTML);
     }
 
@@ -124,7 +124,7 @@
             </div>
         </div>
         `;
-        
+
         document.body.insertAdjacentHTML('beforeend', snakeHTML);
     }
 
@@ -197,7 +197,7 @@
             </div>
         </div>
         `;
-        
+
         document.body.insertAdjacentHTML('beforeend', tetrisHTML);
     }
 
@@ -277,26 +277,26 @@
 
     // 俄罗斯方块键盘事件处理器
     var tetrisKeyHandler = null;
-    
+
     function initTetrisGame() {
         tetrisGame.canvas = document.getElementById('tetris-canvas');
         tetrisGame.nextCanvas = document.getElementById('tetris-next-canvas');
         if (!tetrisGame.canvas || !tetrisGame.nextCanvas) return;
-        
+
         tetrisGame.ctx = tetrisGame.canvas.getContext('2d');
         tetrisGame.nextCtx = tetrisGame.nextCanvas.getContext('2d');
         tetrisGame.bestScore = parseInt(localStorage.getItem('tetris-best-score') || '0');
-        
+
         resetTetrisGame();
         updateTetrisDisplay();
-        
+
         // 移除之前的键盘事件监听器
         if (tetrisKeyHandler) {
             document.removeEventListener('keydown', tetrisKeyHandler);
         }
-        
+
         // 绑定新的键盘事件
-        tetrisKeyHandler = function(e) {
+        tetrisKeyHandler = function (e) {
             var modal = document.getElementById('tetris-modal');
             if (modal && modal.style.display === 'flex') {
                 handleTetrisKeyPress(e);
@@ -314,7 +314,7 @@
                 tetrisGame.board[y][x] = 0;
             }
         }
-        
+
         tetrisGame.score = 0;
         tetrisGame.level = 1;
         tetrisGame.lines = 0;
@@ -329,10 +329,10 @@
         var pieceTypes = Object.keys(tetrisPieces);
         var randomType = pieceTypes[Math.floor(Math.random() * pieceTypes.length)];
         var piece = tetrisPieces[randomType];
-        
+
         return {
             type: randomType,
-            shape: piece.shape.map(function(row) { return row.slice(); }),
+            shape: piece.shape.map(function (row) { return row.slice(); }),
             color: piece.color,
             x: Math.floor(tetrisGame.boardWidth / 2) - Math.floor(piece.shape[0].length / 2),
             y: 0
@@ -343,14 +343,14 @@
         var rotated = [];
         var rows = piece.shape.length;
         var cols = piece.shape[0].length;
-        
+
         for (var i = 0; i < cols; i++) {
             rotated[i] = [];
             for (var j = 0; j < rows; j++) {
                 rotated[i][j] = piece.shape[rows - 1 - j][i];
             }
         }
-        
+
         var newPiece = {
             type: piece.type,
             color: piece.color,
@@ -367,9 +367,9 @@
                 if (piece.shape[y][x]) {
                     var newX = piece.x + x + (offsetX || 0);
                     var newY = piece.y + y + (offsetY || 0);
-                    
-                    if (newX < 0 || newX >= tetrisGame.boardWidth || 
-                        newY >= tetrisGame.boardHeight || 
+
+                    if (newX < 0 || newX >= tetrisGame.boardWidth ||
+                        newY >= tetrisGame.boardHeight ||
                         (newY >= 0 && tetrisGame.board[newY][newX])) {
                         return false;
                     }
@@ -395,7 +395,7 @@
 
     function clearLines() {
         var linesCleared = 0;
-        
+
         for (var y = tetrisGame.boardHeight - 1; y >= 0; y--) {
             var isFullLine = true;
             for (var x = 0; x < tetrisGame.boardWidth; x++) {
@@ -404,7 +404,7 @@
                     break;
                 }
             }
-            
+
             if (isFullLine) {
                 tetrisGame.board.splice(y, 1);
                 tetrisGame.board.unshift(new Array(tetrisGame.boardWidth).fill(0));
@@ -412,7 +412,7 @@
                 y++; // 重新检查当前行
             }
         }
-        
+
         if (linesCleared > 0) {
             tetrisGame.lines += linesCleared;
             tetrisGame.score += linesCleared * 100 * tetrisGame.level;
@@ -431,7 +431,7 @@
             tetrisGameLoop();
             return;
         }
-        
+
         // 处理暂停/继续和退出键
         if (e.code === 'Space') {
             e.preventDefault();
@@ -452,16 +452,16 @@
             }
             return;
         }
-        
+
         if (e.code === 'Escape') {
             closeTetrisGame();
             return;
         }
-        
+
         // 只有在游戏进行中才处理移动键
         if (tetrisGame.gameState !== 'playing') return;
-        
-        switch(e.code) {
+
+        switch (e.code) {
             case 'ArrowLeft':
             case 'KeyA':
                 e.preventDefault();
@@ -493,25 +493,25 @@
                 }
                 break;
         }
-        
+
         drawTetrisGame();
     }
 
     function tetrisGameLoop() {
         if (tetrisGame.gameState !== 'playing') return;
-        
+
         var currentTime = Date.now();
-        
+
         if (currentTime - tetrisGame.dropTime > tetrisGame.dropInterval) {
             if (isValidPosition(tetrisGame.currentPiece, 0, 1)) {
                 tetrisGame.currentPiece.y++;
             } else {
                 placePiece(tetrisGame.currentPiece);
                 clearLines();
-                
+
                 tetrisGame.currentPiece = tetrisGame.nextPiece;
                 tetrisGame.nextPiece = createRandomPiece();
-                
+
                 if (!isValidPosition(tetrisGame.currentPiece, 0, 0)) {
                     tetrisGameOver();
                     return;
@@ -519,31 +519,31 @@
             }
             tetrisGame.dropTime = currentTime;
         }
-        
+
         drawTetrisGame();
         updateTetrisDisplay();
-        
+
         tetrisGame.animationId = requestAnimationFrame(tetrisGameLoop);
     }
 
     function drawTetrisGame() {
         var ctx = tetrisGame.ctx;
-        
+
         // 清空画布
         ctx.fillStyle = '#000000';
         ctx.fillRect(0, 0, tetrisGame.canvas.width, tetrisGame.canvas.height);
-        
+
         // 绘制游戏板
         for (var y = 0; y < tetrisGame.boardHeight; y++) {
             for (var x = 0; x < tetrisGame.boardWidth; x++) {
                 if (tetrisGame.board[y][x]) {
                     ctx.fillStyle = tetrisGame.board[y][x];
-                    ctx.fillRect(x * tetrisGame.blockSize, y * tetrisGame.blockSize, 
-                               tetrisGame.blockSize - 1, tetrisGame.blockSize - 1);
+                    ctx.fillRect(x * tetrisGame.blockSize, y * tetrisGame.blockSize,
+                        tetrisGame.blockSize - 1, tetrisGame.blockSize - 1);
                 }
             }
         }
-        
+
         // 绘制当前方块
         if (tetrisGame.currentPiece) {
             ctx.fillStyle = tetrisGame.currentPiece.color;
@@ -557,7 +557,7 @@
                 }
             }
         }
-        
+
         // 绘制网格线
         ctx.strokeStyle = '#333333';
         ctx.lineWidth = 1;
@@ -573,29 +573,29 @@
             ctx.lineTo(tetrisGame.canvas.width, y * tetrisGame.blockSize);
             ctx.stroke();
         }
-        
+
         // 绘制下一个方块
         drawNextPiece();
     }
 
     function drawNextPiece() {
         var ctx = tetrisGame.nextCtx;
-        
+
         // 清空画布
         ctx.fillStyle = '#000000';
         ctx.fillRect(0, 0, tetrisGame.nextCanvas.width, tetrisGame.nextCanvas.height);
-        
+
         if (tetrisGame.nextPiece) {
             ctx.fillStyle = tetrisGame.nextPiece.color;
             var blockSize = 15;
             var offsetX = (tetrisGame.nextCanvas.width - tetrisGame.nextPiece.shape[0].length * blockSize) / 2;
             var offsetY = (tetrisGame.nextCanvas.height - tetrisGame.nextPiece.shape.length * blockSize) / 2;
-            
+
             for (var y = 0; y < tetrisGame.nextPiece.shape.length; y++) {
                 for (var x = 0; x < tetrisGame.nextPiece.shape[y].length; x++) {
                     if (tetrisGame.nextPiece.shape[y][x]) {
-                        ctx.fillRect(offsetX + x * blockSize, offsetY + y * blockSize, 
-                                   blockSize - 1, blockSize - 1);
+                        ctx.fillRect(offsetX + x * blockSize, offsetY + y * blockSize,
+                            blockSize - 1, blockSize - 1);
                     }
                 }
             }
@@ -604,20 +604,20 @@
 
     function tetrisGameOver() {
         tetrisGame.gameState = 'gameOver';
-        
+
         if (tetrisGame.score > tetrisGame.bestScore) {
             tetrisGame.bestScore = tetrisGame.score;
             localStorage.setItem('tetris-best-score', tetrisGame.bestScore.toString());
         }
-        
+
         updateTetrisDisplay();
-        
+
         var gameOverElement = document.getElementById('tetris-game-over');
         var finalScoreElement = document.getElementById('tetris-final-score');
-        
+
         if (gameOverElement) gameOverElement.style.display = 'flex';
         if (finalScoreElement) finalScoreElement.textContent = '得分: ' + tetrisGame.score;
-        
+
         if (tetrisGame.animationId) {
             cancelAnimationFrame(tetrisGame.animationId);
         }
@@ -628,7 +628,7 @@
         var bestScoreElement = document.getElementById('tetris-best-score');
         var levelElement = document.getElementById('tetris-level');
         var linesElement = document.getElementById('tetris-lines');
-        
+
         if (scoreElement) scoreElement.textContent = tetrisGame.score;
         if (bestScoreElement) bestScoreElement.textContent = tetrisGame.bestScore;
         if (levelElement) levelElement.textContent = tetrisGame.level;
@@ -661,19 +661,19 @@
         var modal = document.getElementById('tetris-modal');
         if (modal) {
             modal.style.display = 'none';
-            
+
             // 停止游戏循环
             if (tetrisGame.animationId) {
                 cancelAnimationFrame(tetrisGame.animationId);
                 tetrisGame.animationId = null;
             }
-            
+
             // 移除键盘事件监听器
             if (tetrisKeyHandler) {
                 document.removeEventListener('keydown', tetrisKeyHandler);
                 tetrisKeyHandler = null;
             }
-            
+
             // 重置游戏状态
             tetrisGame.gameState = 'start';
         }
@@ -697,15 +697,15 @@
     function initSnakeGame() {
         snakeGame.canvas = document.getElementById('snake-canvas');
         if (!snakeGame.canvas) return;
-        
+
         snakeGame.ctx = snakeGame.canvas.getContext('2d');
         snakeGame.bestScore = parseInt(localStorage.getItem('snake-best-score') || '0');
-        
+
         resetSnakeGame();
         updateSnakeDisplay();
-        
+
         // 绑定键盘事件
-        document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', function (e) {
             var modal = document.getElementById('snake-modal');
             if (modal && modal.style.display === 'flex') {
                 handleSnakeKeyPress(e);
@@ -732,7 +732,7 @@
         if (snakeGame.gameState === 'start') {
             // 只有按下方向键才开始游戏
             var validStart = false;
-            switch(e.code) {
+            switch (e.code) {
                 case 'ArrowUp':
                 case 'KeyW':
                     e.preventDefault();
@@ -761,14 +761,14 @@
                     closeSnakeGame();
                     break;
             }
-            
+
             if (validStart) {
                 snakeGame.gameState = 'playing';
                 document.getElementById('snake-start-screen').style.display = 'none';
                 snakeGameLoop();
             }
         } else if (snakeGame.gameState === 'playing') {
-            switch(e.code) {
+            switch (e.code) {
                 case 'ArrowUp':
                 case 'KeyW':
                     e.preventDefault();
@@ -806,22 +806,22 @@
 
     function snakeGameLoop() {
         if (snakeGame.gameState !== 'playing') return;
-        
+
         updateSnakeGame();
         drawSnakeGame();
-        
+
         snakeGame.animationId = setTimeout(snakeGameLoop, 150);
     }
 
     function updateSnakeGame() {
         var head = { x: snakeGame.snake[0].x + snakeGame.direction.x, y: snakeGame.snake[0].y + snakeGame.direction.y };
-        
+
         // 检查边界碰撞
         if (head.x < 0 || head.x >= snakeGame.tileCount || head.y < 0 || head.y >= snakeGame.tileCount) {
             snakeGameOver();
             return;
         }
-        
+
         // 检查自身碰撞
         for (var i = 0; i < snakeGame.snake.length; i++) {
             if (head.x === snakeGame.snake[i].x && head.y === snakeGame.snake[i].y) {
@@ -829,19 +829,19 @@
                 return;
             }
         }
-        
+
         snakeGame.snake.unshift(head);
-        
+
         // 检查是否吃到食物
         if (head.x === snakeGame.food.x && head.y === snakeGame.food.y) {
             snakeGame.score += 10;
             snakeGame.food = generateFood();
-            
+
             // 确保食物不生成在蛇身上
             while (snakeGame.snake.some(segment => segment.x === snakeGame.food.x && segment.y === snakeGame.food.y)) {
                 snakeGame.food = generateFood();
             }
-            
+
             updateSnakeDisplay();
         } else {
             snakeGame.snake.pop();
@@ -850,11 +850,11 @@
 
     function drawSnakeGame() {
         var ctx = snakeGame.ctx;
-        
+
         // 清空画布
         ctx.fillStyle = '#2c3e50';
         ctx.fillRect(0, 0, snakeGame.canvas.width, snakeGame.canvas.height);
-        
+
         // 绘制网格
         ctx.strokeStyle = '#34495e';
         ctx.lineWidth = 1;
@@ -863,43 +863,43 @@
             ctx.moveTo(i * snakeGame.gridSize, 0);
             ctx.lineTo(i * snakeGame.gridSize, snakeGame.canvas.height);
             ctx.stroke();
-            
+
             ctx.beginPath();
             ctx.moveTo(0, i * snakeGame.gridSize);
             ctx.lineTo(snakeGame.canvas.width, i * snakeGame.gridSize);
             ctx.stroke();
         }
-        
+
         // 绘制蛇
         for (var i = 0; i < snakeGame.snake.length; i++) {
             var segment = snakeGame.snake[i];
             ctx.fillStyle = i === 0 ? '#27ae60' : '#2ecc71'; // 头部颜色稍深
-            ctx.fillRect(segment.x * snakeGame.gridSize + 1, segment.y * snakeGame.gridSize + 1, 
-                        snakeGame.gridSize - 2, snakeGame.gridSize - 2);
+            ctx.fillRect(segment.x * snakeGame.gridSize + 1, segment.y * snakeGame.gridSize + 1,
+                snakeGame.gridSize - 2, snakeGame.gridSize - 2);
         }
-        
+
         // 绘制食物
         ctx.fillStyle = '#e74c3c';
-        ctx.fillRect(snakeGame.food.x * snakeGame.gridSize + 1, snakeGame.food.y * snakeGame.gridSize + 1, 
-                    snakeGame.gridSize - 2, snakeGame.gridSize - 2);
+        ctx.fillRect(snakeGame.food.x * snakeGame.gridSize + 1, snakeGame.food.y * snakeGame.gridSize + 1,
+            snakeGame.gridSize - 2, snakeGame.gridSize - 2);
     }
 
     function snakeGameOver() {
         snakeGame.gameState = 'gameOver';
-        
+
         if (snakeGame.score > snakeGame.bestScore) {
             snakeGame.bestScore = snakeGame.score;
             localStorage.setItem('snake-best-score', snakeGame.bestScore.toString());
         }
-        
+
         updateSnakeDisplay();
-        
+
         var gameOverElement = document.getElementById('snake-game-over');
         var finalScoreElement = document.getElementById('snake-final-score');
-        
+
         if (gameOverElement) gameOverElement.style.display = 'flex';
         if (finalScoreElement) finalScoreElement.textContent = '得分: ' + snakeGame.score;
-        
+
         if (snakeGame.animationId) {
             clearTimeout(snakeGame.animationId);
         }
@@ -909,7 +909,7 @@
         var scoreElement = document.getElementById('snake-score');
         var bestScoreElement = document.getElementById('snake-best-score');
         var lengthElement = document.getElementById('snake-length');
-        
+
         if (scoreElement) scoreElement.textContent = snakeGame.score;
         if (bestScoreElement) bestScoreElement.textContent = snakeGame.bestScore;
         if (lengthElement) lengthElement.textContent = snakeGame.snake.length;
@@ -927,13 +927,13 @@
         if (modal) {
             modal.style.display = 'flex';
             initSnakeGame();
-            
+
             // 确保显示开始界面
             var startScreen = document.getElementById('snake-start-screen');
             var gameOverScreen = document.getElementById('snake-game-over');
             if (startScreen) startScreen.style.display = 'flex';
             if (gameOverScreen) gameOverScreen.style.display = 'none';
-            
+
             // 绘制初始状态
             drawSnakeGame();
         }
@@ -969,16 +969,16 @@
     function initFlappyBird() {
         flappyGame.canvas = document.getElementById('flappy-canvas');
         if (!flappyGame.canvas) return;
-        
+
         flappyGame.ctx = flappyGame.canvas.getContext('2d');
         flappyGame.bestScore = parseInt(localStorage.getItem('flappy-best-score') || '0');
-        
+
         resetFlappyGame();
         updateFlappyDisplay();
-        
+
         // 绑定事件
         flappyGame.canvas.addEventListener('click', flappyJump);
-        document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', function (e) {
             var modal = document.getElementById('flappy-modal');
             if (modal && modal.style.display === 'flex') {
                 if (e.code === 'Space') {
@@ -996,7 +996,7 @@
         flappyGame.pipes = [];
         flappyGame.score = 0;
         flappyGame.gameState = 'start';
-        
+
         // 生成初始管道
         for (var i = 0; i < 3; i++) {
             generatePipe(400 + i * 200);
@@ -1019,7 +1019,7 @@
             document.getElementById('flappy-start-screen').style.display = 'none';
             gameLoop();
         }
-        
+
         if (flappyGame.gameState === 'playing') {
             flappyGame.bird.velocity = flappyGame.jumpStrength;
         }
@@ -1027,10 +1027,10 @@
 
     function gameLoop() {
         if (flappyGame.gameState !== 'playing') return;
-        
+
         updateFlappyGame();
         drawFlappyGame();
-        
+
         flappyGame.animationId = requestAnimationFrame(gameLoop);
     }
 
@@ -1038,43 +1038,43 @@
         // 更新小鸟
         flappyGame.bird.velocity += flappyGame.gravity;
         flappyGame.bird.y += flappyGame.bird.velocity;
-        
+
         // 检查边界碰撞
         if (flappyGame.bird.y <= 0 || flappyGame.bird.y >= flappyGame.canvas.height - flappyGame.bird.size) {
             gameOver();
             return;
         }
-        
+
         // 更新管道
         for (var i = flappyGame.pipes.length - 1; i >= 0; i--) {
             var pipe = flappyGame.pipes[i];
             pipe.x -= flappyGame.pipeSpeed;
-            
+
             // 检查碰撞
-            if (pipe.x < flappyGame.bird.x + flappyGame.bird.size && 
+            if (pipe.x < flappyGame.bird.x + flappyGame.bird.size &&
                 pipe.x + flappyGame.pipeWidth > flappyGame.bird.x) {
-                if (flappyGame.bird.y < pipe.topHeight || 
+                if (flappyGame.bird.y < pipe.topHeight ||
                     flappyGame.bird.y + flappyGame.bird.size > pipe.bottomY) {
                     gameOver();
                     return;
                 }
             }
-            
+
             // 计分
             if (!pipe.passed && pipe.x + flappyGame.pipeWidth < flappyGame.bird.x) {
                 pipe.passed = true;
                 flappyGame.score++;
                 updateFlappyDisplay();
             }
-            
+
             // 移除离开屏幕的管道
             if (pipe.x + flappyGame.pipeWidth < 0) {
                 flappyGame.pipes.splice(i, 1);
             }
         }
-        
+
         // 生成新管道
-        if (flappyGame.pipes.length > 0 && 
+        if (flappyGame.pipes.length > 0 &&
             flappyGame.pipes[flappyGame.pipes.length - 1].x < flappyGame.canvas.width - 200) {
             generatePipe(flappyGame.canvas.width);
         }
@@ -1082,11 +1082,11 @@
 
     function drawFlappyGame() {
         var ctx = flappyGame.ctx;
-        
+
         // 清空画布
         ctx.fillStyle = '#87CEEB';
         ctx.fillRect(0, 0, flappyGame.canvas.width, flappyGame.canvas.height);
-        
+
         // 绘制管道
         ctx.fillStyle = '#228B22';
         for (var i = 0; i < flappyGame.pipes.length; i++) {
@@ -1094,32 +1094,32 @@
             // 上管道
             ctx.fillRect(pipe.x, 0, flappyGame.pipeWidth, pipe.topHeight);
             // 下管道
-            ctx.fillRect(pipe.x, pipe.bottomY, flappyGame.pipeWidth, 
-                        flappyGame.canvas.height - pipe.bottomY);
+            ctx.fillRect(pipe.x, pipe.bottomY, flappyGame.pipeWidth,
+                flappyGame.canvas.height - pipe.bottomY);
         }
-        
+
         // 绘制小鸟
         ctx.fillStyle = '#FFD700';
-        ctx.fillRect(flappyGame.bird.x, flappyGame.bird.y, 
-                    flappyGame.bird.size, flappyGame.bird.size);
+        ctx.fillRect(flappyGame.bird.x, flappyGame.bird.y,
+            flappyGame.bird.size, flappyGame.bird.size);
     }
 
     function gameOver() {
         flappyGame.gameState = 'gameOver';
-        
+
         if (flappyGame.score > flappyGame.bestScore) {
             flappyGame.bestScore = flappyGame.score;
             localStorage.setItem('flappy-best-score', flappyGame.bestScore.toString());
         }
-        
+
         updateFlappyDisplay();
-        
+
         var gameOverElement = document.getElementById('flappy-game-over');
         var finalScoreElement = document.getElementById('flappy-final-score');
-        
+
         if (gameOverElement) gameOverElement.style.display = 'flex';
         if (finalScoreElement) finalScoreElement.textContent = '得分: ' + flappyGame.score;
-        
+
         if (flappyGame.animationId) {
             cancelAnimationFrame(flappyGame.animationId);
         }
@@ -1128,7 +1128,7 @@
     function updateFlappyDisplay() {
         var scoreElement = document.getElementById('flappy-score');
         var bestScoreElement = document.getElementById('flappy-best-score');
-        
+
         if (scoreElement) scoreElement.textContent = flappyGame.score;
         if (bestScoreElement) bestScoreElement.textContent = flappyGame.bestScore;
     }
@@ -1183,7 +1183,7 @@
 
         if (selectorClose) selectorClose.addEventListener('click', closeGameSelector);
         if (select2048) {
-            select2048.addEventListener('click', function() {
+            select2048.addEventListener('click', function () {
                 closeGameSelector();
                 if (window.Game2048) {
                     window.Game2048.openGame();
@@ -1191,23 +1191,23 @@
             });
         }
         if (selectFlappy) {
-            selectFlappy.addEventListener('click', function() {
+            selectFlappy.addEventListener('click', function () {
                 closeGameSelector();
                 openFlappyBird();
             });
         }
-        
+
         var selectSnake = document.getElementById('select-snake');
         if (selectSnake) {
-            selectSnake.addEventListener('click', function() {
+            selectSnake.addEventListener('click', function () {
                 closeGameSelector();
                 openSnakeGame();
             });
         }
-        
+
         var selectTetris = document.getElementById('select-tetris');
         if (selectTetris) {
-            selectTetris.addEventListener('click', function() {
+            selectTetris.addEventListener('click', function () {
                 closeGameSelector();
                 openTetrisGame();
             });
@@ -1215,7 +1215,7 @@
 
         // 点击背景关闭选择器
         if (selectorModal) {
-            selectorModal.addEventListener('click', function(e) {
+            selectorModal.addEventListener('click', function (e) {
                 if (e.target === selectorModal) {
                     closeGameSelector();
                 }
@@ -1232,7 +1232,7 @@
 
         // 点击背景关闭Flappy Bird
         if (flappyModal) {
-            flappyModal.addEventListener('click', function(e) {
+            flappyModal.addEventListener('click', function (e) {
                 if (e.target === flappyModal) {
                     closeFlappyBird();
                 }
@@ -1249,13 +1249,13 @@
 
         // 点击背景关闭贪吃蛇
         if (snakeModal) {
-            snakeModal.addEventListener('click', function(e) {
+            snakeModal.addEventListener('click', function (e) {
                 if (e.target === snakeModal) {
                     closeSnakeGame();
                 }
             });
         }
-        
+
         // 俄罗斯方块事件
         var tetrisClose = document.getElementById('tetris-close');
         var tetrisRestart = document.getElementById('tetris-restart');
@@ -1266,7 +1266,7 @@
 
         // 点击背景关闭俄罗斯方块
         if (tetrisModal) {
-            tetrisModal.addEventListener('click', function(e) {
+            tetrisModal.addEventListener('click', function (e) {
                 if (e.target === tetrisModal) {
                     closeTetrisGame();
                 }
