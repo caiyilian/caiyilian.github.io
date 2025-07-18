@@ -557,9 +557,6 @@
                     'right': 'auto',
                     'bottom': 'auto'
                 });
-                
-                // 保存位置到localStorage
-                localStorage.setItem('waifuPosition', JSON.stringify({x: newX, y: newY}));
             }
         });
         
@@ -570,25 +567,21 @@
             }
         });
         
-        // 恢复保存的位置
-        function restoreWaifuPosition() {
-            var savedPosition = localStorage.getItem('waifuPosition');
-            if (savedPosition) {
-                var pos = JSON.parse(savedPosition);
-                $('.waifu').css({
-                    'position': 'fixed',
-                    'left': pos.x + 'px',
-                    'top': pos.y + 'px',
-                    'right': 'auto',
-                    'bottom': 'auto'
-                });
-            }
+        // 重置到默认位置（右下角）
+        function resetToDefaultPosition() {
+            $('.waifu').css({
+                'position': 'fixed',
+                'right': '65px',
+                'bottom': '0px',
+                'left': 'auto',
+                'top': 'auto'
+            });
         }
         
         // 初始化模型
         $(document).ready(function() {
-            // 恢复位置
-            restoreWaifuPosition();
+            // 重置到默认位置
+            resetToDefaultPosition();
             
             // 设置初始鼠标样式
             $('.waifu').css('cursor', 'grab');
