@@ -387,3 +387,249 @@
     font-weight: bold;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
+
+/* 俄罗斯方块游戏样式 */
+.tetris-game-window {
+    background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+    border-radius: 20px;
+    padding: 0;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    max-width: 520px;
+    width: 90%;
+    animation: slideIn 0.3s ease;
+    overflow: hidden;
+}
+
+.tetris-info {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-around;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tetris-game-area {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.tetris-main {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.tetris-side {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+#tetris-canvas {
+    border-radius: 10px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    background: #000000;
+    border: 2px solid #444444;
+}
+
+.tetris-next {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.next-title {
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+#tetris-next-canvas {
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    background: #000000;
+    border: 2px solid #444444;
+}
+
+.tetris-controls {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 15px;
+    min-width: 120px;
+}
+
+.controls-title {
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 10px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.control-item {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+    padding: 3px 0;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.control-item:last-child {
+    border-bottom: none;
+}
+
+.tetris-game-over {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.tetris-final-score {
+    font-size: 18px;
+    color: #9b59b6;
+    margin-bottom: 15px;
+}
+
+.tetris-start-screen {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.tetris-start-screen .start-instruction {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.4;
+}
+
+.tetris-paused-screen {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 2px solid #9b59b6;
+}
+
+.paused-text {
+    font-size: 24px;
+    font-weight: bold;
+    color: #9b59b6;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.paused-instruction {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-top: 10px;
+}
+
+/* 俄罗斯方块响应式设计 */
+@media (max-width: 600px) {
+    .tetris-game-window {
+        width: 95%;
+    }
+    
+    .tetris-main {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .tetris-side {
+        flex-direction: row;
+        gap: 15px;
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .tetris-controls {
+        min-width: 100px;
+        padding: 10px;
+    }
+    
+    .controls-title {
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+    
+    .control-item {
+        font-size: 12px;
+        padding: 2px 0;
+    }
+    
+    #tetris-canvas {
+        width: 250px;
+        height: 500px;
+    }
+    
+    .tetris-info {
+        padding: 10px 15px;
+        font-size: 14px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .tetris-game-over,
+    .tetris-start-screen,
+    .tetris-paused-screen {
+        padding: 20px;
+        font-size: 14px;
+    }
+    
+    .paused-text {
+        font-size: 20px;
+    }
+    
+    .paused-instruction {
+        font-size: 14px;
+    }
+    
+    .score-container {
+        min-width: 60px;
+    }
+    
+    .score-value {
+        font-size: 18px;
+    }
+}
