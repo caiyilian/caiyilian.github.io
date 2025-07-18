@@ -219,6 +219,45 @@
             opacity: 1;
             visibility: visible;
         }
+
+        /* 鼠标轨迹效果 */
+        .mouse-trail {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle, rgba(255, 182, 193, 0.8) 0%, rgba(255, 105, 180, 0.6) 50%, transparent 100%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            animation: trailFade 1s ease-out forwards;
+        }
+
+        @keyframes trailFade {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.3);
+            }
+        }
+
+        /* 不同大小的轨迹点 */
+        .mouse-trail.small {
+            width: 4px;
+            height: 4px;
+        }
+
+        .mouse-trail.medium {
+            width: 6px;
+            height: 6px;
+        }
+
+        .mouse-trail.large {
+            width: 10px;
+            height: 10px;
+        }
     </style>
 
 </head>
@@ -325,7 +364,7 @@
             <div class="text-white-50 small">
                 <div id="copyright-text" class="mb-2"></div>
                 <div class="mb-2">
-                    <small>💡 小贴士：按 <kbd>B</kbd> 键进入背景欣赏模式 | 按 <kbd>N</kbd> 键切换背景图片</small>
+                    <small>💡 小贴士：按 <kbd>B</kbd> 键进入背景欣赏模式 | 按 <kbd>N</kbd> 键切换背景图片 | 按 <kbd>T</kbd> 键切换鼠标轨迹</small>
                 </div>
                 <a id="github-link" href="https://github.com/senli1073">Github</a>
                 <span class="mx-1">&middot;</span>
@@ -548,13 +587,13 @@
 
         // 鼠标交互
         $(document).on('mouseover', '#live2d', function () {
-            var texts = ['你好呀~', '欢迎来到我的世界！', '今天过得怎么样？', '按 B 键进入背景欣赏模式哦~', '想看美丽的背景吗？按 B 键试试！', '按 N 键可以切换背景图片呢~', '想要换个背景吗？试试按 N 键！'];
+            var texts = ['你好呀~', '欢迎来到我的世界！', '今天过得怎么样？', '按 B 键进入背景欣赏模式哦~', '想看美丽的背景吗？按 B 键试试！', '按 N 键可以切换背景图片呢~', '想要换个背景吗？试试按 N 键！', '按 T 键可以切换鼠标轨迹效果呢✨'];
             var text = texts[Math.floor(Math.random() * texts.length)];
             showMessage(text, 3000);
         });
 
         $(document).on('click', '#live2d', function () {
-            var texts = ['是…是不是想摸我呀？', 'kyaa~好害羞！', '请…请轻一点…', '按 B 键可以进入背景欣赏模式呢~', '想要纯净的背景体验吗？试试按 B 键！', '按 N 键能换背景图片哦~', '想看不同的风景吗？按 N 键试试！'];
+            var texts = ['是…是不是想摸我呀？', 'kyaa~好害羞！', '请…请轻一点…', '按 B 键可以进入背景欣赏模式呢~', '想要纯净的背景体验吗？试试按 B 键！', '按 N 键能换背景图片哦~', '想看不同的风景吗？按 N 键试试！', '按 T 键可以切换鼠标轨迹效果呢✨'];
             var text = texts[Math.floor(Math.random() * texts.length)];
             showMessage(text, 3000, true);
         });
@@ -663,6 +702,44 @@
             }
         }
 
+        // 鼠标轨迹功能
+        var mouseTrailEnabled = true;
+        var lastTrailTime = 0;
+        var trailDelay = 50; // 轨迹生成间隔（毫秒）
+
+        function createMouseTrail(x, y) {
+            if (!mouseTrailEnabled) return;
+            
+            var currentTime = Date.now();
+            if (currentTime - lastTrailTime < trailDelay) return;
+            lastTrailTime = currentTime;
+
+            var trail = $('<div class="mouse-trail"></div>');
+            
+            // 随机大小
+            var sizes = ['small', 'medium', '', 'large'];
+            var randomSize = sizes[Math.floor(Math.random() * sizes.length)];
+            if (randomSize) trail.addClass(randomSize);
+            
+            // 设置位置
+            trail.css({
+                left: x - 4 + 'px',
+                top: y - 4 + 'px'
+            });
+            
+            $('body').append(trail);
+            
+            // 1秒后移除元素
+            setTimeout(function() {
+                trail.remove();
+            }, 1000);
+        }
+
+        // 监听鼠标移动
+        $(document).on('mousemove', function(e) {
+            createMouseTrail(e.clientX, e.clientY);
+        });
+
         // 键盘快捷键支持
         $(document).on('keydown', function (e) {
             // 确保不在输入框中
@@ -673,6 +750,12 @@
                 } else if (e.key === 'n' || e.key === 'N') {
                     e.preventDefault();
                     changeBackground();
+                } else if (e.key === 't' || e.key === 'T') {
+                    e.preventDefault();
+                    mouseTrailEnabled = !mouseTrailEnabled;
+                    if (typeof showMessage === 'function') {
+                        showMessage(mouseTrailEnabled ? '鼠标轨迹已开启✨' : '鼠标轨迹已关闭', 2000, true);
+                    }
                 }
             }
         });
