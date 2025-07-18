@@ -325,7 +325,7 @@
             <div class="text-white-50 small">
                 <div id="copyright-text" class="mb-2"></div>
                 <div class="mb-2">
-                    <small>💡 小贴士：按 <kbd>B</kbd> 键进入背景欣赏模式</small>
+                    <small>💡 小贴士：按 <kbd>B</kbd> 键进入背景欣赏模式 | 按 <kbd>N</kbd> 键切换背景图片</small>
                 </div>
                 <a id="github-link" href="https://github.com/senli1073">Github</a>
                 <span class="mx-1">&middot;</span>
@@ -548,13 +548,13 @@
 
         // 鼠标交互
         $(document).on('mouseover', '#live2d', function () {
-            var texts = ['你好呀~', '欢迎来到我的世界！', '今天过得怎么样？', '按 B 键进入背景欣赏模式哦~', '想看美丽的背景吗？按 B 键试试！'];
+            var texts = ['你好呀~', '欢迎来到我的世界！', '今天过得怎么样？', '按 B 键进入背景欣赏模式哦~', '想看美丽的背景吗？按 B 键试试！', '按 N 键可以切换背景图片呢~', '想要换个背景吗？试试按 N 键！'];
             var text = texts[Math.floor(Math.random() * texts.length)];
             showMessage(text, 3000);
         });
 
         $(document).on('click', '#live2d', function () {
-            var texts = ['是…是不是想摸我呀？', 'kyaa~好害羞！', '请…请轻一点…', '按 B 键可以进入背景欣赏模式呢~', '想要纯净的背景体验吗？试试按 B 键！'];
+            var texts = ['是…是不是想摸我呀？', 'kyaa~好害羞！', '请…请轻一点…', '按 B 键可以进入背景欣赏模式呢~', '想要纯净的背景体验吗？试试按 B 键！', '按 N 键能换背景图片哦~', '想看不同的风景吗？按 N 键试试！'];
             var text = texts[Math.floor(Math.random() * texts.length)];
             showMessage(text, 3000, true);
         });
@@ -650,13 +650,29 @@
             }
         }
 
-        // 键盘快捷键支持 (按B键切换)
+        // 背景切换功能
+        function changeBackground() {
+            // 添加时间戳参数强制刷新背景图片
+            var timestamp = new Date().getTime();
+            var newBgUrl = 'https://t.alcy.cc/moez?t=' + timestamp;
+            $('body').css('background-image', 'url(' + newBgUrl + ')');
+            
+            // 显示提示消息
+            if (typeof showMessage === 'function') {
+                showMessage('背景已切换！喜欢这张图片吗？', 3000, true);
+            }
+        }
+
+        // 键盘快捷键支持
         $(document).on('keydown', function (e) {
-            if (e.key === 'b' || e.key === 'B') {
-                // 确保不在输入框中
-                if (!$(e.target).is('input, textarea, [contenteditable]')) {
+            // 确保不在输入框中
+            if (!$(e.target).is('input, textarea, [contenteditable]')) {
+                if (e.key === 'b' || e.key === 'B') {
                     e.preventDefault();
                     toggleBackgroundMode();
+                } else if (e.key === 'n' || e.key === 'N') {
+                    e.preventDefault();
+                    changeBackground();
                 }
             }
         });
