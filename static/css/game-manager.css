@@ -947,3 +947,297 @@
         font-size: 16px;
     }
 }
+
+/* 数字华容道游戏样式 */
+.sliding-puzzle-game-window {
+    background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+    border-radius: 20px;
+    padding: 0;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    max-width: 600px;
+    width: 95%;
+    animation: slideIn 0.3s ease;
+    overflow: hidden;
+}
+
+.sliding-puzzle-info {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-around;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.sliding-puzzle-game-area {
+    position: relative;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.sliding-puzzle-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.sliding-puzzle-grid {
+    display: grid;
+    gap: 4px;
+    background: #333;
+    border: 4px solid #333;
+    border-radius: 16px;
+    padding: 4px;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+    width: 400px;
+    height: 400px;
+    margin: 0 auto;
+}
+
+.sliding-puzzle-cell {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: none;
+    border-radius: 12px;
+    font-size: 32px;
+    font-weight: bold;
+    color: #2d3436;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    user-select: none;
+    min-height: 80px;
+    position: relative;
+}
+
+.sliding-puzzle-tile {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: none;
+    border-radius: 12px;
+    font-size: 32px;
+    font-weight: bold;
+    color: #2d3436;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    user-select: none;
+    min-height: 80px;
+}
+
+.sliding-puzzle-cell:hover {
+    background: linear-gradient(135deg, #e8f4fd 0%, #d1ecf1 100%);
+    transform: scale(1.02);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+.sliding-puzzle-cell.empty {
+    background: transparent;
+    box-shadow: none;
+    cursor: default;
+}
+
+.sliding-puzzle-cell.empty:hover {
+    background: transparent;
+    transform: none;
+    box-shadow: none;
+}
+
+
+
+.sliding-puzzle-tile:hover {
+    background: linear-gradient(135deg, #e8f4fd 0%, #d1ecf1 100%);
+    transform: scale(1.02);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+.sliding-puzzle-tile.empty {
+    background: transparent;
+    box-shadow: none;
+    cursor: default;
+}
+
+.sliding-puzzle-tile.empty:hover {
+    background: transparent;
+    transform: none;
+    box-shadow: none;
+}
+
+.sliding-puzzle-controls {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.controls-title {
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 10px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.control-item {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    margin-bottom: 5px;
+    text-align: center;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.sliding-puzzle-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+.sliding-puzzle-game-over {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.sliding-puzzle-final-stats {
+    font-size: 16px;
+    color: #74b9ff;
+    margin-bottom: 15px;
+}
+
+.sliding-puzzle-start-screen {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.size-buttons {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.size-btn {
+    background: rgba(116, 185, 255, 0.8);
+    border: 2px solid rgba(116, 185, 255, 1);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.size-btn:hover {
+    background: rgba(116, 185, 255, 1);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* 数字华容道响应式设计 */
+@media (max-width: 768px) {
+    .sliding-puzzle-game-window {
+        width: 98%;
+    }
+    
+    .sliding-puzzle-grid {
+        width: 350px;
+        height: 350px;
+    }
+    
+    .sliding-puzzle-cell,
+    .sliding-puzzle-tile {
+        font-size: 28px;
+        min-height: 70px;
+    }
+    
+    .sliding-puzzle-controls {
+        padding: 12px;
+    }
+    
+    .sliding-puzzle-actions {
+        gap: 8px;
+    }
+    
+    .sliding-puzzle-info {
+        padding: 10px 15px;
+        font-size: 14px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .size-buttons {
+        gap: 10px;
+    }
+    
+    .size-btn {
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .sliding-puzzle-grid {
+        width: 300px;
+        height: 300px;
+    }
+    
+    .sliding-puzzle-cell,
+    .sliding-puzzle-tile {
+        font-size: 24px;
+        min-height: 60px;
+    }
+    
+    .sliding-puzzle-game-over,
+    .sliding-puzzle-start-screen {
+        padding: 20px;
+        font-size: 14px;
+    }
+    
+    .score-container {
+        min-width: 60px;
+    }
+    
+    .score-value {
+        font-size: 16px;
+    }
+    
+    .sliding-puzzle-actions {
+        gap: 6px;
+    }
+    
+    .game-btn {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+}

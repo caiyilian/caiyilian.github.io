@@ -38,7 +38,7 @@
                     </div>
                     
                     <div class="game-option" id="select-sudoku">
-                        <div class="game-icon">🔢</div>
+                        <div class="game-icon">🧮</div>
                         <h3>数独</h3>
                         <p>填入数字，完成9x9数独谜题！</p>
                     </div>
@@ -290,6 +290,71 @@
         `;
 
         document.body.insertAdjacentHTML('beforeend', sudokuHTML);
+    }
+
+    // 数字华容道游戏HTML
+    function injectSlidingPuzzleHTML() {
+        var slidingPuzzleHTML = `
+        <div class="game-modal" id="sliding-puzzle-modal">
+            <div class="sliding-puzzle-game-window">
+                <div class="game-header">
+                    <h2 class="game-title">🧩 数字华容道</h2>
+                    <button class="game-close" id="sliding-puzzle-close">×</button>
+                </div>
+
+                <div class="sliding-puzzle-info">
+                    <div class="score-container">
+                        <div class="score-label">难度</div>
+                        <div class="score-value" id="sliding-puzzle-size">3x3</div>
+                    </div>
+                    <div class="score-container">
+                        <div class="score-label">步数</div>
+                        <div class="score-value" id="sliding-puzzle-moves">0</div>
+                    </div>
+                    <div class="score-container">
+                        <div class="score-label">时间</div>
+                        <div class="score-value" id="sliding-puzzle-time">00:00</div>
+                    </div>
+                </div>
+
+                <div class="sliding-puzzle-game-area">
+                    <div class="sliding-puzzle-main">
+                        <div class="sliding-puzzle-grid" id="sliding-puzzle-grid"></div>
+                        <div class="sliding-puzzle-side">
+                            <div class="sliding-puzzle-controls">
+                                <div class="controls-title">操作说明</div>
+                                <div class="control-item">点击数字移动</div>
+                                <div class="control-item">方向键移动</div>
+                                <div class="control-item">按顺序排列数字</div>
+                                <div class="control-item">ESC 退出游戏</div>
+                            </div>
+                            <div class="sliding-puzzle-actions">
+                                <button class="game-btn" id="sliding-puzzle-shuffle">打乱</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sliding-puzzle-game-over" id="sliding-puzzle-game-over">
+                        <div class="game-over-text" id="sliding-puzzle-game-over-text">恭喜完成！</div>
+                        <div class="sliding-puzzle-final-stats">
+                            <div class="final-moves" id="sliding-puzzle-final-moves">步数: 0</div>
+                            <div class="final-time" id="sliding-puzzle-final-time">用时: 00:00</div>
+                        </div>
+                        <button class="game-btn" id="sliding-puzzle-restart">再来一局</button>
+                    </div>
+                    <div class="sliding-puzzle-start-screen" id="sliding-puzzle-start-screen">
+                        <div class="start-text">选择难度开始游戏</div>
+                        <div class="size-buttons">
+                            <button class="size-btn" data-size="3">3x3 (简单)</button>
+                            <button class="size-btn" data-size="4">4x4 (中等)</button>
+                            <button class="size-btn" data-size="5">5x5 (困难)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', slidingPuzzleHTML);
     }
 
     // 俄罗斯方块游戏逻辑
@@ -769,6 +834,276 @@
             tetrisGame.gameState = 'start';
         }
     }
+
+    // 数字华容道游戏逻辑
+    var slidingPuzzleGame = {
+        grid: [],
+        size: 3,
+        emptyPos: { row: 2, col: 2 },
+        moves: 0,
+        startTime: null,
+        gameTime: 0,
+        gameState: 'start', // 'start', 'playing', 'completed'
+        timer: null,
+        isShuffling: false
+    };
+
+    function initSlidingPuzzleGame() {
+        resetSlidingPuzzleGame();
+        createSlidingPuzzleGrid();
+        bindSlidingPuzzleEvents();
+    }
+
+    function resetSlidingPuzzleGame() {
+        slidingPuzzleGame.moves = 0;
+        slidingPuzzleGame.startTime = null;
+        slidingPuzzleGame.gameTime = 0;
+        slidingPuzzleGame.gameState = 'start';
+        slidingPuzzleGame.isShuffling = false;
+        if (slidingPuzzleGame.timer) {
+            clearInterval(slidingPuzzleGame.timer);
+            slidingPuzzleGame.timer = null;
+        }
+        updateSlidingPuzzleDisplay();
+    }
+
+    function createSlidingPuzzleGrid() {
+        var size = slidingPuzzleGame.size;
+        slidingPuzzleGame.grid = [];
+        slidingPuzzleGame.emptyPos = { row: size - 1, col: size - 1 };
+        
+        // 创建有序网格
+        for (var i = 0; i < size; i++) {
+            slidingPuzzleGame.grid[i] = [];
+            for (var j = 0; j < size; j++) {
+                var num = i * size + j + 1;
+                slidingPuzzleGame.grid[i][j] = (num === size * size) ? 0 : num;
+            }
+        }
+    }
+
+    function renderSlidingPuzzleGrid() {
+        var gridElement = document.getElementById('sliding-puzzle-grid');
+        if (!gridElement) return;
+        
+        var size = slidingPuzzleGame.size;
+        gridElement.innerHTML = '';
+        gridElement.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+        gridElement.style.gridTemplateRows = `repeat(${size}, 1fr)`;
+        
+        for (var i = 0; i < size; i++) {
+            for (var j = 0; j < size; j++) {
+                var cell = document.createElement('div');
+                cell.className = 'sliding-puzzle-cell';
+                cell.dataset.row = i;
+                cell.dataset.col = j;
+                
+                var value = slidingPuzzleGame.grid[i][j];
+                if (value === 0) {
+                    cell.classList.add('empty');
+                } else {
+                    cell.textContent = value;
+                    cell.addEventListener('click', function() {
+                        var row = parseInt(this.dataset.row);
+                        var col = parseInt(this.dataset.col);
+                        moveSlidingPuzzleTile(row, col);
+                    });
+                }
+                
+                gridElement.appendChild(cell);
+            }
+        }
+    }
+
+    function moveSlidingPuzzleTile(row, col) {
+        if (slidingPuzzleGame.gameState !== 'playing' || slidingPuzzleGame.isShuffling) return;
+        
+        var emptyRow = slidingPuzzleGame.emptyPos.row;
+        var emptyCol = slidingPuzzleGame.emptyPos.col;
+        
+        // 检查是否可以移动（相邻且在同一行或列）
+        var canMove = (Math.abs(row - emptyRow) === 1 && col === emptyCol) ||
+                     (Math.abs(col - emptyCol) === 1 && row === emptyRow);
+        
+        if (canMove) {
+            // 交换位置
+            slidingPuzzleGame.grid[emptyRow][emptyCol] = slidingPuzzleGame.grid[row][col];
+            slidingPuzzleGame.grid[row][col] = 0;
+            slidingPuzzleGame.emptyPos = { row: row, col: col };
+            
+            slidingPuzzleGame.moves++;
+            updateSlidingPuzzleDisplay();
+            renderSlidingPuzzleGrid();
+            
+            // 检查是否完成
+            if (isSlidingPuzzleComplete()) {
+                slidingPuzzleGameComplete();
+            }
+        }
+    }
+
+    function isSlidingPuzzleComplete() {
+        var size = slidingPuzzleGame.size;
+        for (var i = 0; i < size; i++) {
+            for (var j = 0; j < size; j++) {
+                var expectedValue = (i === size - 1 && j === size - 1) ? 0 : i * size + j + 1;
+                if (slidingPuzzleGame.grid[i][j] !== expectedValue) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    function slidingPuzzleGameComplete() {
+        slidingPuzzleGame.gameState = 'completed';
+        if (slidingPuzzleGame.timer) {
+            clearInterval(slidingPuzzleGame.timer);
+        }
+        
+        var finalTime = formatTime(slidingPuzzleGame.gameTime);
+        document.getElementById('sliding-puzzle-final-moves').textContent = '步数: ' + slidingPuzzleGame.moves;
+        document.getElementById('sliding-puzzle-final-time').textContent = '用时: ' + finalTime;
+        document.getElementById('sliding-puzzle-game-over').style.display = 'flex';
+    }
+
+    function startSlidingPuzzleGame(size) {
+        slidingPuzzleGame.size = size;
+        slidingPuzzleGame.gameState = 'playing';
+        slidingPuzzleGame.startTime = Date.now();
+        slidingPuzzleGame.moves = 0;
+        
+        document.getElementById('sliding-puzzle-start-screen').style.display = 'none';
+        document.getElementById('sliding-puzzle-game-over').style.display = 'none';
+        
+        createSlidingPuzzleGrid();
+        shuffleSlidingPuzzle();
+        renderSlidingPuzzleGrid();
+        
+        // 开始计时器
+        slidingPuzzleGame.timer = setInterval(function() {
+            slidingPuzzleGame.gameTime = Math.floor((Date.now() - slidingPuzzleGame.startTime) / 1000);
+            updateSlidingPuzzleDisplay();
+        }, 1000);
+        
+        updateSlidingPuzzleDisplay();
+    }
+
+    function shuffleSlidingPuzzle() {
+        slidingPuzzleGame.isShuffling = true;
+        var size = slidingPuzzleGame.size;
+        var shuffleMoves = size * size * 10; // 充分打乱
+        
+        for (var i = 0; i < shuffleMoves; i++) {
+            var possibleMoves = [];
+            var emptyRow = slidingPuzzleGame.emptyPos.row;
+            var emptyCol = slidingPuzzleGame.emptyPos.col;
+            
+            // 找到所有可能的移动
+            if (emptyRow > 0) possibleMoves.push({ row: emptyRow - 1, col: emptyCol });
+            if (emptyRow < size - 1) possibleMoves.push({ row: emptyRow + 1, col: emptyCol });
+            if (emptyCol > 0) possibleMoves.push({ row: emptyRow, col: emptyCol - 1 });
+            if (emptyCol < size - 1) possibleMoves.push({ row: emptyRow, col: emptyCol + 1 });
+            
+            // 随机选择一个移动
+            var randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+            
+            // 执行移动（不计入步数）
+            slidingPuzzleGame.grid[emptyRow][emptyCol] = slidingPuzzleGame.grid[randomMove.row][randomMove.col];
+            slidingPuzzleGame.grid[randomMove.row][randomMove.col] = 0;
+            slidingPuzzleGame.emptyPos = randomMove;
+        }
+        
+        slidingPuzzleGame.isShuffling = false;
+        slidingPuzzleGame.moves = 0; // 重置步数
+    }
+
+    function updateSlidingPuzzleDisplay() {
+        document.getElementById('sliding-puzzle-size').textContent = slidingPuzzleGame.size + 'x' + slidingPuzzleGame.size;
+        document.getElementById('sliding-puzzle-moves').textContent = slidingPuzzleGame.moves;
+        document.getElementById('sliding-puzzle-time').textContent = formatTime(slidingPuzzleGame.gameTime);
+    }
+
+    function bindSlidingPuzzleEvents() {
+        // 难度选择按钮
+        var sizeBtns = document.querySelectorAll('.size-btn');
+        sizeBtns.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                startSlidingPuzzleGame(parseInt(this.dataset.size));
+            });
+        });
+        
+        // 键盘事件
+        document.addEventListener('keydown', function(e) {
+            var modal = document.getElementById('sliding-puzzle-modal');
+            if (modal && modal.style.display === 'flex' && slidingPuzzleGame.gameState === 'playing') {
+                var emptyRow = slidingPuzzleGame.emptyPos.row;
+                var emptyCol = slidingPuzzleGame.emptyPos.col;
+                var targetRow = emptyRow;
+                var targetCol = emptyCol;
+                
+                switch(e.key) {
+                    case 'ArrowUp':
+                        if (emptyRow < slidingPuzzleGame.size - 1) targetRow = emptyRow + 1;
+                        break;
+                    case 'ArrowDown':
+                        if (emptyRow > 0) targetRow = emptyRow - 1;
+                        break;
+                    case 'ArrowLeft':
+                        if (emptyCol < slidingPuzzleGame.size - 1) targetCol = emptyCol + 1;
+                        break;
+                    case 'ArrowRight':
+                        if (emptyCol > 0) targetCol = emptyCol - 1;
+                        break;
+                    case 'Escape':
+                        closeSlidingPuzzleGame();
+                        return;
+                }
+                
+                if (targetRow !== emptyRow || targetCol !== emptyCol) {
+                    e.preventDefault();
+                    moveSlidingPuzzleTile(targetRow, targetCol);
+                }
+            }
+        });
+    }
+
+    function openSlidingPuzzleGame() {
+        var modal = document.getElementById('sliding-puzzle-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+            resetSlidingPuzzleGame();
+            document.getElementById('sliding-puzzle-start-screen').style.display = 'flex';
+            document.getElementById('sliding-puzzle-game-over').style.display = 'none';
+        }
+    }
+
+    function closeSlidingPuzzleGame() {
+        var modal = document.getElementById('sliding-puzzle-modal');
+        if (modal) {
+            modal.style.display = 'none';
+            if (slidingPuzzleGame.timer) {
+                clearInterval(slidingPuzzleGame.timer);
+                slidingPuzzleGame.timer = null;
+            }
+        }
+    }
+
+    function restartSlidingPuzzleGame() {
+        document.getElementById('sliding-puzzle-game-over').style.display = 'none';
+        startSlidingPuzzleGame(slidingPuzzleGame.size);
+    }
+
+    function shuffleSlidingPuzzleManual() {
+        if (slidingPuzzleGame.gameState === 'playing') {
+            shuffleSlidingPuzzle();
+            renderSlidingPuzzleGrid();
+            slidingPuzzleGame.moves = 0;
+            updateSlidingPuzzleDisplay();
+        }
+    }
+
+
 
     // 数独游戏逻辑
     var sudokuGame = {
@@ -1690,6 +2025,14 @@
             });
         }
 
+        var selectSlidingPuzzle = document.getElementById('select-sliding-puzzle');
+        if (selectSlidingPuzzle) {
+            selectSlidingPuzzle.addEventListener('click', function () {
+                closeGameSelector();
+                openSlidingPuzzleGame();
+            });
+        }
+
         // 点击背景关闭选择器
         if (selectorModal) {
             selectorModal.addEventListener('click', function (e) {
@@ -1776,6 +2119,31 @@
                 }
             });
         }
+
+        // 数字华容道事件
+        var slidingPuzzleClose = document.getElementById('sliding-puzzle-close');
+        var slidingPuzzleRestart = document.getElementById('sliding-puzzle-restart');
+        var slidingPuzzleNewGame = document.getElementById('sliding-puzzle-new-game');
+        var slidingPuzzleShuffle = document.getElementById('sliding-puzzle-shuffle');
+        var slidingPuzzleModal = document.getElementById('sliding-puzzle-modal');
+
+        if (slidingPuzzleClose) slidingPuzzleClose.addEventListener('click', closeSlidingPuzzleGame);
+        if (slidingPuzzleRestart) slidingPuzzleRestart.addEventListener('click', restartSlidingPuzzleGame);
+        if (slidingPuzzleNewGame) slidingPuzzleNewGame.addEventListener('click', function() {
+            document.getElementById('sliding-puzzle-start-screen').style.display = 'flex';
+            document.getElementById('sliding-puzzle-game-over').style.display = 'none';
+            resetSlidingPuzzleGame();
+        });
+        if (slidingPuzzleShuffle) slidingPuzzleShuffle.addEventListener('click', shuffleSlidingPuzzleManual);
+
+        // 点击背景关闭数字华容道
+        if (slidingPuzzleModal) {
+            slidingPuzzleModal.addEventListener('click', function (e) {
+                if (e.target === slidingPuzzleModal) {
+                    closeSlidingPuzzleGame();
+                }
+            });
+        }
     }
 
     // 初始化
@@ -1785,8 +2153,10 @@
         injectSnakeHTML();
         injectTetrisHTML();
         injectSudokuHTML();
+        injectSlidingPuzzleHTML();
         bindEvents();
         initSudokuGame();
+        initSlidingPuzzleGame();
     }
 
     // 公开API
@@ -1801,7 +2171,9 @@
         openTetrisGame: openTetrisGame,
         closeTetrisGame: closeTetrisGame,
         openSudokuGame: openSudokuGame,
-        closeSudokuGame: closeSudokuGame
+        closeSudokuGame: closeSudokuGame,
+        openSlidingPuzzleGame: openSlidingPuzzleGame,
+        closeSlidingPuzzleGame: closeSlidingPuzzleGame
     };
 
     // 自动初始化
