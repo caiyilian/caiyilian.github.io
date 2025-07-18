@@ -95,7 +95,7 @@
             -moz-user-select: none;
             -ms-user-select: none;
         }
-        
+
         .waifu:active {
             cursor: url('static/assets/img/cursor-grabbing.svg') 16 16, grabbing;
         }
@@ -182,13 +182,50 @@
                 transform: translate(0.5px, 2.5px) rotate(0.5deg);
             }
         }
+
+        /* 背景欣赏模式样式 */
+        .bg-mode-active {
+            overflow: hidden;
+        }
+
+        .bg-mode-active .content-hidden {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .content-hidden {
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        /* 背景模式提示 */
+        .bg-mode-tip {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .bg-mode-active .bg-mode-tip {
+            opacity: 1;
+            visibility: visible;
+        }
     </style>
 
 </head>
 
 <body id="page-top">
     <!-- Navigation-->
-    <nav class="header navbar navbar-expand-lg navbar-light fixed-top shadow-sm" id="mainNav">
+    <nav class="header navbar navbar-expand-lg navbar-light fixed-top shadow-sm content-hidden" id="mainNav">
         <div class="container px-5">
             <a id="page-top-title" class="navbar-brand fw-bold" href="#page-top"></a>
             <!-- <a href="#page-top"><img src="static/assets/img/CUMT_LOGO.svg" style="width: 11rem;"></a> -->
@@ -211,13 +248,14 @@
                     <li class="nav-item">
                         <a class="nav-link me-lg-3" href="#publications">PUBLICATIONS</a>
                     </li>
+
                 </ul>
             </div>
         </div>
     </nav>
 
     <!-- Top Section -->
-    <section class="top-section">
+    <section class="top-section content-hidden">
         <div class="top-section-content">
             <div class="container px-5">
                 <h2 id="top-section-bg-text" class="text-white display-3 lh-1 font-alt"></h2>
@@ -227,7 +265,7 @@
     <!-- Top Section -->
 
     <!-- Photo -->
-    <div class="container px-5">
+    <div class="container px-5 content-hidden">
         <div id="avatar">
             <img class="shadow" src="static/assets/img/photo.png">
         </div>
@@ -235,7 +273,7 @@
     <!-- Photo -->
 
     <!-- Home -->
-    <section class="bg-gradient-primary-to-secondary-light mt5 md5" id="home">
+    <section class="bg-gradient-primary-to-secondary-light mt5 md5 content-hidden" id="home">
         <div class="container px-5">
             <header>
                 <h2 id="home-subtitle"> </h2>
@@ -247,7 +285,7 @@
     <!-- Home -->
 
     <!-- Awards -->
-    <section class="bg-gradient-primary-to-secondary-light mt5 md5" id="awards">
+    <section class="bg-gradient-primary-to-secondary-light mt5 md5 content-hidden" id="awards">
         <div class="container px-5">
             <header>
                 <h2 id="awards-subtitle"><i class="bi bi-award-fill"></i>AWARDS </h2>
@@ -259,7 +297,7 @@
     <!-- Awards -->
 
     <!-- Experience -->
-    <section class="bg-gradient-primary-to-secondary-dark mt5 md5" id="experience">
+    <section class="bg-gradient-primary-to-secondary-dark mt5 md5 content-hidden" id="experience">
         <div class="container px-5">
             <header>
                 <h2 id="experience-subtitle"><i class="bi bi-briefcase-fill"></i> EXPERIENCE </h2>
@@ -270,7 +308,7 @@
     <!-- Experience -->
 
     <!-- Publications -->
-    <section class="bg-gradient-primary-to-secondary-gray mt5 md5" id="publications">
+    <section class="bg-gradient-primary-to-secondary-gray mt5 md5 content-hidden" id="publications">
         <div class="container px-5">
             <header>
                 <h2 id="publications-subtitle"><i class="bi bi-file-text-fill"></i>&nbsp;PUBLICATIONS</h2>
@@ -282,10 +320,13 @@
     <!-- Publications  -->
 
     <!-- Footer-->
-    <footer class="bg-bottom text-center py-5">
+    <footer class="bg-bottom text-center py-5 content-hidden">
         <div class="container px-5">
             <div class="text-white-50 small">
                 <div id="copyright-text" class="mb-2"></div>
+                <div class="mb-2">
+                    <small>💡 小贴士：按 <kbd>B</kbd> 键进入背景欣赏模式</small>
+                </div>
                 <a id="github-link" href="https://github.com/senli1073">Github</a>
                 <span class="mx-1">&middot;</span>
                 <a id="license-link"
@@ -294,17 +335,22 @@
         </div>
     </footer>
 
+    <!-- 背景模式提示 -->
+    <div class="bg-mode-tip">
+        🖼️ 背景欣赏模式 | 按 B 键退出
+    </div>
+
     <!-- Live2D Waifu -->
     <div class="waifu">
         <div class="waifu-tips"></div>
         <canvas id="live2d" width="280" height="250"></canvas>
         <div class="waifu-tool">
-            <span class="fui-home">🏠</span>
+            <!-- <span class="fui-home">🏠</span> -->
             <span class="fui-chat">💬</span>
             <span class="fui-eye">👁</span>
             <span class="fui-user">👤</span>
             <span class="fui-photo">📷</span>
-            <span class="fui-info-circle">ℹ</span>
+            <!-- <span class="fui-info-circle">ℹ</span> -->
             <span class="fui-cross">❌</span>
         </div>
     </div>
@@ -502,13 +548,13 @@
 
         // 鼠标交互
         $(document).on('mouseover', '#live2d', function () {
-            var texts = ['你好呀~', '欢迎来到我的世界！', '今天过得怎么样？'];
+            var texts = ['你好呀~', '欢迎来到我的世界！', '今天过得怎么样？', '按 B 键进入背景欣赏模式哦~', '想看美丽的背景吗？按 B 键试试！'];
             var text = texts[Math.floor(Math.random() * texts.length)];
             showMessage(text, 3000);
         });
 
         $(document).on('click', '#live2d', function () {
-            var texts = ['是…是不是想摸我呀？', 'kyaa~好害羞！', '请…请轻一点…'];
+            var texts = ['是…是不是想摸我呀？', 'kyaa~好害羞！', '请…请轻一点…', '按 B 键可以进入背景欣赏模式呢~', '想要纯净的背景体验吗？试试按 B 键！'];
             var text = texts[Math.floor(Math.random() * texts.length)];
             showMessage(text, 3000, true);
         });
@@ -516,39 +562,39 @@
         // 拖拽功能
         var isDragging = false;
         var dragOffset = { x: 0, y: 0 };
-        
-        $('.waifu').on('mousedown', function(e) {
+
+        $('.waifu').on('mousedown', function (e) {
             // 防止在点击工具栏时触发拖拽
             if ($(e.target).closest('.waifu-tool').length > 0) {
                 return;
             }
-            
+
             isDragging = true;
             var waifuPos = $(this).offset();
             dragOffset.x = e.clientX - waifuPos.left;
             dragOffset.y = e.clientY - waifuPos.top;
-            
+
             // 改变鼠标样式
             $(this).css('cursor', 'url(static/assets/img/cursor-grabbing.svg) 16 16, grabbing');
-            
+
             // 防止文本选择
             e.preventDefault();
         });
-        
-        $(document).on('mousemove', function(e) {
+
+        $(document).on('mousemove', function (e) {
             if (isDragging) {
                 var newX = e.clientX - dragOffset.x;
                 var newY = e.clientY - dragOffset.y;
-                
+
                 // 限制拖拽范围，防止拖出屏幕
                 var windowWidth = $(window).width();
                 var windowHeight = $(window).height();
                 var waifuWidth = $('.waifu').outerWidth();
                 var waifuHeight = $('.waifu').outerHeight();
-                
+
                 newX = Math.max(0, Math.min(newX, windowWidth - waifuWidth));
                 newY = Math.max(0, Math.min(newY, windowHeight - waifuHeight));
-                
+
                 // 实时更新位置
                 $('.waifu').css({
                     'position': 'fixed',
@@ -559,14 +605,14 @@
                 });
             }
         });
-        
-        $(document).on('mouseup', function() {
+
+        $(document).on('mouseup', function () {
             if (isDragging) {
                 isDragging = false;
                 $('.waifu').css('cursor', 'url(static/assets/img/cursor-grab.svg) 16 16, grab');
             }
         });
-        
+
         // 重置到默认位置（右下角）
         function resetToDefaultPosition() {
             $('.waifu').css({
@@ -577,16 +623,53 @@
                 'top': 'auto'
             });
         }
-        
+
+        // 背景欣赏模式功能
+        var bgModeActive = false;
+
+        function toggleBackgroundMode() {
+            bgModeActive = !bgModeActive;
+            var $body = $('body');
+
+            if (bgModeActive) {
+                // 开启背景欣赏模式
+                $body.addClass('bg-mode-active');
+
+                // 显示提示消息
+                if (typeof showMessage === 'function') {
+                    showMessage('背景欣赏模式已开启，按 B 键退出', 3000, true);
+                }
+            } else {
+                // 关闭背景欣赏模式
+                $body.removeClass('bg-mode-active');
+
+                // 显示提示消息
+                if (typeof showMessage === 'function') {
+                    showMessage('欢迎回来！继续浏览内容吧~', 3000, true);
+                }
+            }
+        }
+
+        // 键盘快捷键支持 (按B键切换)
+        $(document).on('keydown', function (e) {
+            if (e.key === 'b' || e.key === 'B') {
+                // 确保不在输入框中
+                if (!$(e.target).is('input, textarea, [contenteditable]')) {
+                    e.preventDefault();
+                    toggleBackgroundMode();
+                }
+            }
+        });
+
         // 初始化模型
-        $(document).ready(function() {
+        $(document).ready(function () {
             // 重置到默认位置
             resetToDefaultPosition();
-            
+
             // 设置初始鼠标样式
             $('.waifu').css('cursor', 'url(static/assets/img/cursor-grab.svg) 16 16, grab');
-            
-            setTimeout(function() {
+
+            setTimeout(function () {
                 var modelId = localStorage.getItem('modelId') || 1;
                 var modelTexturesId = localStorage.getItem('modelTexturesId') || 87;
                 loadModel(modelId, modelTexturesId);
