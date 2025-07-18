@@ -7,7 +7,6 @@
 
 /* 全局背景设置 */
 body {
-    /* background-image: url('https://www.loliapi.com/acg/'); */
     background-image: url('https://t.alcy.cc/moez');
     background-size: cover;
     background-position: center;
@@ -19,19 +18,30 @@ body {
 }
 
 /* 可爱鼠标样式 */
-a, button, .btn, [role="button"], input[type="submit"], input[type="button"] {
+a,
+button,
+.btn,
+[role="button"],
+input[type="submit"],
+input[type="button"] {
     cursor: url('../assets/img/cursor-pointer.svg') 16 4, pointer !important;
 }
 
-input[type="text"], input[type="email"], input[type="password"], textarea, [contenteditable] {
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea,
+[contenteditable] {
     cursor: url('../assets/img/cursor-text.svg') 16 16, text !important;
 }
 
-.draggable, [draggable="true"] {
+.draggable,
+[draggable="true"] {
     cursor: url('../assets/img/cursor-grab.svg') 16 16, grab !important;
 }
 
-.dragging, .draggable:active {
+.dragging,
+.draggable:active {
     cursor: url('../assets/img/cursor-grabbing.svg') 16 16, grabbing !important;
 }
 
