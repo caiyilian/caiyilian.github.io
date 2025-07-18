@@ -218,36 +218,30 @@
 
     <!-- Live2D Functionality 已移至 live2d-waifu.js 模块 -->
     <script>
-        // 优化的Live2D初始化逻辑
-        function initLive2DWithRetry(retryCount) {
-            if (retryCount === undefined) retryCount = 0;
-
-            if (window.Live2DWaifu && typeof loadlive2d !== 'undefined') {
+        // 简化的Live2D初始化逻辑
+        function initLive2D() {
+            if (window.Live2DWaifu) {
                 console.log('开始初始化Live2D看板娘');
                 Live2DWaifu.init();
-            } else if (retryCount < 10) {
-                console.log('等待Live2D依赖加载，重试次数:', retryCount + 1);
-                setTimeout(function () {
-                    initLive2DWithRetry(retryCount + 1);
-                }, 500);
             } else {
-                console.error('Live2D初始化失败：依赖未正确加载');
+                console.log('等待Live2D模块加载...');
+                setTimeout(initLive2D, 200);
             }
         }
 
-        // 使用多种事件确保初始化
+        // 页面准备就绪时初始化
         $(document).ready(function () {
-            initLive2DWithRetry();
+            initLive2D();
         });
 
-        // 页面完全加载后再次尝试初始化（防止强制刷新时的问题）
+        // 页面完全加载后确保初始化（防止强制刷新时的问题）
         $(window).on('load', function () {
             setTimeout(function () {
-                if (!document.getElementById('live2d') || !window.Live2DWaifu) {
+                if (!document.getElementById('live2d')) {
                     console.log('页面加载完成后重新初始化Live2D');
-                    initLive2DWithRetry();
+                    initLive2D();
                 }
-            }, 1000);
+            }, 500);
         });
     </script>
 
