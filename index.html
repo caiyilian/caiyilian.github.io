@@ -89,7 +89,7 @@
             transition: all .3s ease-in-out;
             -webkit-transform: translateY(3px);
             transform: translateY(3px);
-            cursor: grab;
+            cursor: url('static/assets/img/cursor-grab.svg') 16 16, grab;
             user-select: none;
             -webkit-user-select: none;
             -moz-user-select: none;
@@ -97,7 +97,7 @@
         }
         
         .waifu:active {
-            cursor: grabbing;
+            cursor: url('static/assets/img/cursor-grabbing.svg') 16 16, grabbing;
         }
 
         .waifu:hover {
@@ -529,7 +529,7 @@
             dragOffset.y = e.clientY - waifuPos.top;
             
             // 改变鼠标样式
-            $(this).css('cursor', 'grabbing');
+            $(this).css('cursor', 'url(static/assets/img/cursor-grabbing.svg) 16 16, grabbing');
             
             // 防止文本选择
             e.preventDefault();
@@ -563,7 +563,7 @@
         $(document).on('mouseup', function() {
             if (isDragging) {
                 isDragging = false;
-                $('.waifu').css('cursor', 'grab');
+                $('.waifu').css('cursor', 'url(static/assets/img/cursor-grab.svg) 16 16, grab');
             }
         });
         
@@ -584,7 +584,7 @@
             resetToDefaultPosition();
             
             // 设置初始鼠标样式
-            $('.waifu').css('cursor', 'grab');
+            $('.waifu').css('cursor', 'url(static/assets/img/cursor-grab.svg) 16 16, grab');
             
             setTimeout(function() {
                 var modelId = localStorage.getItem('modelId') || 1;
