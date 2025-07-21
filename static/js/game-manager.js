@@ -1620,10 +1620,17 @@
     function updateSnakeGame() {
         var head = { x: snakeGame.snake[0].x + snakeGame.direction.x, y: snakeGame.snake[0].y + snakeGame.direction.y };
 
-        // 检查边界碰撞
-        if (head.x < 0 || head.x >= snakeGame.tileCount || head.y < 0 || head.y >= snakeGame.tileCount) {
-            snakeGameOver();
-            return;
+        // 穿墙机制：从对面墙壁出现
+        if (head.x < 0) {
+            head.x = snakeGame.tileCount - 1; // 从右边出现
+        } else if (head.x >= snakeGame.tileCount) {
+            head.x = 0; // 从左边出现
+        }
+        
+        if (head.y < 0) {
+            head.y = snakeGame.tileCount - 1; // 从下边出现
+        } else if (head.y >= snakeGame.tileCount) {
+            head.y = 0; // 从上边出现
         }
 
         // 检查自身碰撞
