@@ -146,7 +146,7 @@
         <div class="game-modal" id="tetris-modal">
             <div class="tetris-game-window">
                 <div class="game-header">
-                    <h2 class="game-title">🧩 俄罗斯方块</h2>
+                    <div class="game-icon">🔲</div>
                     <button class="game-close" id="tetris-close">×</button>
                 </div>
 
