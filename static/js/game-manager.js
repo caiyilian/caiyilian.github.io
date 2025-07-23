@@ -32,7 +32,7 @@
                     </div>
                     
                     <div class="game-option" id="select-tetris">
-                        <div class="game-icon">🧩</div>
+                        <div class="game-icon">🔲</div>
                         <h3>俄罗斯方块</h3>
                         <p>旋转和移动方块，消除完整行！</p>
                     </div>
@@ -62,7 +62,7 @@
         <div class="game-modal" id="flappy-modal">
             <div class="flappy-game-window">
                 <div class="game-header">
-                    <h2 class="game-title">🐦 Flappy Bird</h2>
+                    <h2 class="game-title">🚁 Cyberpunk Flappy</h2>
                     <button class="game-close" id="flappy-close">×</button>
                 </div>
 
@@ -80,13 +80,13 @@
                 <div class="flappy-game-area">
                     <canvas id="flappy-canvas" width="400" height="600"></canvas>
                     <div class="flappy-game-over" id="flappy-game-over">
-                        <div class="game-over-text" id="flappy-game-over-text">游戏结束!</div>
+                        <div class="game-over-text" id="flappy-game-over-text">SYSTEM FAILURE</div>
                         <div class="flappy-final-score" id="flappy-final-score">得分: 0</div>
                         <button class="game-btn" id="flappy-restart">重新开始</button>
                     </div>
                     <div class="flappy-start-screen" id="flappy-start-screen">
-                        <div class="start-text">点击或按空格键开始</div>
-                        <div class="start-instruction">点击屏幕或按空格键控制小鸟飞行</div>
+                        <div class="start-text">SYSTEM READY</div>
+                        <div class="start-instruction">点击屏幕或按空格键控制赛博无人机穿越霓虹城市</div>
                     </div>
                 </div>
             </div>
@@ -146,7 +146,7 @@
         <div class="game-modal" id="tetris-modal">
             <div class="tetris-game-window">
                 <div class="game-header">
-                    <div class="game-icon">🔲</div>
+                    <h2 class="game-title">🔲 俄罗斯方块</h2>
                     <button class="game-close" id="tetris-close">×</button>
                 </div>
 
@@ -1833,6 +1833,7 @@
 
         if (flappyGame.gameState === 'playing') {
             flappyGame.bird.velocity = flappyGame.jumpStrength;
+            createEngineParticles();
         }
     }
 
@@ -1894,28 +1895,307 @@
     function drawFlappyGame() {
         var ctx = flappyGame.ctx;
 
-        // 清空画布
-        ctx.fillStyle = '#87CEEB';
+        // 绘制赛博朋克背景
+        drawCyberpunkBackground(ctx);
+        
+        // 绘制星空
+        drawStars(ctx);
+        
+        // 绘制赛博朋克建筑物（管道）
+        drawCyberpunkBuildings(ctx);
+        
+        // 绘制赛博朋克无人机（小鸟）
+        drawCyberpunkDrone(ctx);
+        
+        // 绘制粒子效果
+        drawParticles(ctx);
+    }
+    
+    function drawCyberpunkBackground(ctx) {
+        // 深空背景渐变
+        var gradient = ctx.createLinearGradient(0, 0, 0, flappyGame.canvas.height);
+        gradient.addColorStop(0, '#0a0a0a');
+        gradient.addColorStop(0.5, '#1a0a2e');
+        gradient.addColorStop(1, '#16213e');
+        ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, flappyGame.canvas.width, flappyGame.canvas.height);
 
-        // 绘制管道
-        ctx.fillStyle = '#228B22';
-        for (var i = 0; i < flappyGame.pipes.length; i++) {
-            var pipe = flappyGame.pipes[i];
-            // 上管道
-            ctx.fillRect(pipe.x, 0, flappyGame.pipeWidth, pipe.topHeight);
-            // 下管道
-            ctx.fillRect(pipe.x, pipe.bottomY, flappyGame.pipeWidth,
-                flappyGame.canvas.height - pipe.bottomY);
+        // 网格线
+        ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
+        ctx.lineWidth = 1;
+        
+        // 水平网格
+        for (var y = 0; y < flappyGame.canvas.height; y += 40) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(flappyGame.canvas.width, y);
+            ctx.stroke();
+        }
+        
+        // 垂直网格
+        for (var x = 0; x < flappyGame.canvas.width; x += 40) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, flappyGame.canvas.height);
+            ctx.stroke();
         }
 
-        // 绘制小鸟
-        ctx.fillStyle = '#FFD700';
-        ctx.fillRect(flappyGame.bird.x, flappyGame.bird.y,
-            flappyGame.bird.size, flappyGame.bird.size);
+        // 底部城市光晕
+        var cityGlow = ctx.createLinearGradient(0, flappyGame.canvas.height - 100, 0, flappyGame.canvas.height);
+        cityGlow.addColorStop(0, 'rgba(0, 255, 255, 0)');
+        cityGlow.addColorStop(1, 'rgba(0, 255, 255, 0.2)');
+        ctx.fillStyle = cityGlow;
+        ctx.fillRect(0, flappyGame.canvas.height - 100, flappyGame.canvas.width, 100);
     }
-
-    function gameOver() {
+    
+    function drawStars(ctx) {
+        if (!flappyGame.stars) {
+            flappyGame.stars = [];
+            for (var i = 0; i < 50; i++) {
+                flappyGame.stars.push({
+                    x: Math.random() * flappyGame.canvas.width,
+                    y: Math.random() * flappyGame.canvas.height,
+                    size: Math.random() * 2,
+                    speed: Math.random() * 0.5 + 0.1,
+                    brightness: Math.random()
+                });
+            }
+        }
+        
+        for (var i = 0; i < flappyGame.stars.length; i++) {
+            var star = flappyGame.stars[i];
+            star.x -= star.speed;
+            if (star.x < 0) {
+                star.x = flappyGame.canvas.width;
+                star.y = Math.random() * flappyGame.canvas.height;
+            }
+            
+            ctx.fillStyle = 'rgba(255, 255, 255, ' + star.brightness + ')';
+            ctx.fillRect(star.x, star.y, star.size, star.size);
+        }
+     }
+     
+     function drawCyberpunkBuildings(ctx) {
+         for (var i = 0; i < flappyGame.pipes.length; i++) {
+             var pipe = flappyGame.pipes[i];
+             
+             // 初始化建筑窗户（如果还没有）
+             if (!pipe.windows) {
+                 pipe.windows = generateBuildingWindows(pipe);
+             }
+             
+             // 建筑结构渐变
+             var buildingGradient = ctx.createLinearGradient(pipe.x, 0, pipe.x + flappyGame.pipeWidth, 0);
+             buildingGradient.addColorStop(0, '#1a1a2e');
+             buildingGradient.addColorStop(0.5, '#16213e');
+             buildingGradient.addColorStop(1, '#0f3460');
+             
+             // 上建筑
+             ctx.fillStyle = buildingGradient;
+             ctx.fillRect(pipe.x, 0, flappyGame.pipeWidth, pipe.topHeight);
+             
+             // 下建筑
+             ctx.fillRect(pipe.x, pipe.bottomY, flappyGame.pipeWidth, flappyGame.canvas.height - pipe.bottomY);
+             
+             // 建筑轮廓
+             ctx.strokeStyle = '#00ffff';
+             ctx.lineWidth = 2;
+             ctx.strokeRect(pipe.x, 0, flappyGame.pipeWidth, pipe.topHeight);
+             ctx.strokeRect(pipe.x, pipe.bottomY, flappyGame.pipeWidth, flappyGame.canvas.height - pipe.bottomY);
+             
+             // 霓虹边缘
+             ctx.strokeStyle = '#ff00ff';
+             ctx.lineWidth = 1;
+             ctx.beginPath();
+             ctx.moveTo(pipe.x, 0);
+             ctx.lineTo(pipe.x, pipe.topHeight);
+             ctx.moveTo(pipe.x + flappyGame.pipeWidth, 0);
+             ctx.lineTo(pipe.x + flappyGame.pipeWidth, pipe.topHeight);
+             ctx.moveTo(pipe.x, pipe.bottomY);
+             ctx.lineTo(pipe.x, flappyGame.canvas.height);
+             ctx.moveTo(pipe.x + flappyGame.pipeWidth, pipe.bottomY);
+             ctx.lineTo(pipe.x + flappyGame.pipeWidth, flappyGame.canvas.height);
+             ctx.stroke();
+             
+             // 建筑窗户
+             for (var j = 0; j < pipe.windows.length; j++) {
+                 var window = pipe.windows[j];
+                 if (window.lit) {
+                     ctx.fillStyle = window.color;
+                     ctx.fillRect(pipe.x + window.x, window.y, window.size, window.size);
+                     
+                     // 窗户光晕
+                     var windowGlow = ctx.createRadialGradient(
+                         pipe.x + window.x + window.size/2, 
+                         window.y + window.size/2, 
+                         0, 
+                         pipe.x + window.x + window.size/2, 
+                         window.y + window.size/2, 
+                         window.size * 2
+                     );
+                     windowGlow.addColorStop(0, window.color);
+                     windowGlow.addColorStop(1, 'transparent');
+                     ctx.fillStyle = windowGlow;
+                     ctx.fillRect(
+                         pipe.x + window.x - window.size/2, 
+                         window.y - window.size/2, 
+                         window.size * 2, 
+                         window.size * 2
+                     );
+                 }
+             }
+             
+             // 警告灯
+             if (Math.random() > 0.95) {
+                 ctx.fillStyle = '#ff0000';
+                 ctx.fillRect(pipe.x + flappyGame.pipeWidth/2 - 2, pipe.topHeight - 5, 4, 4);
+                 ctx.fillRect(pipe.x + flappyGame.pipeWidth/2 - 2, pipe.bottomY + 1, 4, 4);
+             }
+         }
+     }
+     
+     function generateBuildingWindows(pipe) {
+         var windows = [];
+         var windowSize = 6;
+         var windowSpacing = 12;
+         var colors = ['#00ffff', '#ff00ff', '#00ff00', '#ffff00'];
+         
+         // 上建筑窗户
+         for (var y = 15; y < pipe.topHeight - 15; y += windowSpacing) {
+             for (var x = 8; x < flappyGame.pipeWidth - 8; x += windowSpacing) {
+                 if (Math.random() > 0.3) {
+                     windows.push({
+                         x: x,
+                         y: y,
+                         size: windowSize,
+                         lit: Math.random() > 0.4,
+                         color: colors[Math.floor(Math.random() * colors.length)]
+                     });
+                 }
+             }
+         }
+         
+         // 下建筑窗户
+         for (var y = 15; y < flappyGame.canvas.height - pipe.bottomY - 15; y += windowSpacing) {
+             for (var x = 8; x < flappyGame.pipeWidth - 8; x += windowSpacing) {
+                 if (Math.random() > 0.3) {
+                     windows.push({
+                         x: x,
+                         y: pipe.bottomY + y,
+                         size: windowSize,
+                         lit: Math.random() > 0.4,
+                         color: colors[Math.floor(Math.random() * colors.length)]
+                     });
+                 }
+             }
+         }
+         
+         return windows;
+      }
+      
+      function drawCyberpunkDrone(ctx) {
+          var bird = flappyGame.bird;
+          
+          // 初始化无人机属性
+          if (!bird.engineGlow) bird.engineGlow = 0;
+          if (!bird.rotation) bird.rotation = 0;
+          
+          // 引擎光晕动画
+          bird.engineGlow += 0.1;
+          
+          // 根据速度计算旋转
+          bird.rotation = Math.min(Math.max(bird.velocity * 0.05, -0.3), 0.3);
+          
+          ctx.save();
+          ctx.translate(bird.x + bird.size/2, bird.y + bird.size/2);
+          ctx.rotate(bird.rotation);
+          
+          // 无人机主体渐变
+          var bodyGradient = ctx.createLinearGradient(-bird.size/2, 0, bird.size/2, 0);
+          bodyGradient.addColorStop(0, '#00ffff');
+          bodyGradient.addColorStop(0.5, '#0080ff');
+          bodyGradient.addColorStop(1, '#0040ff');
+          
+          ctx.fillStyle = bodyGradient;
+          ctx.fillRect(-bird.size/2, -bird.size/2, bird.size, bird.size);
+          
+          // 无人机轮廓
+          ctx.strokeStyle = '#00ffff';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(-bird.size/2, -bird.size/2, bird.size, bird.size);
+          
+          // 引擎光晕
+          var glowSize = 6 + Math.sin(bird.engineGlow) * 2;
+          var glowGradient = ctx.createRadialGradient(-bird.size/2 - 3, 0, 0, -bird.size/2 - 3, 0, glowSize);
+          glowGradient.addColorStop(0, 'rgba(0, 255, 255, 0.8)');
+          glowGradient.addColorStop(1, 'rgba(0, 255, 255, 0)');
+          ctx.fillStyle = glowGradient;
+          ctx.fillRect(-bird.size/2 - 3 - glowSize, -glowSize, glowSize * 2, glowSize * 2);
+          
+          // 驾驶舱
+          ctx.fillStyle = '#ffff00';
+          ctx.fillRect(bird.size/2 - 8, -3, 6, 6);
+          
+          // 天线
+          ctx.strokeStyle = '#ff00ff';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(bird.size/2, 0);
+          ctx.lineTo(bird.size/2 + 6, -6);
+          ctx.stroke();
+          
+          // 闪烁灯
+          if (Math.random() > 0.8) {
+              ctx.fillStyle = '#ff00ff';
+              ctx.fillRect(-bird.size/2 + 2, -bird.size/2 - 2, 2, 2);
+              ctx.fillRect(bird.size/2 - 4, -bird.size/2 - 2, 2, 2);
+          }
+          
+          ctx.restore();
+      }
+      
+      function drawParticles(ctx) {
+          if (!flappyGame.particles) {
+              flappyGame.particles = [];
+          }
+          
+          // 更新和绘制粒子
+          for (var i = flappyGame.particles.length - 1; i >= 0; i--) {
+              var particle = flappyGame.particles[i];
+              particle.x += particle.vx;
+              particle.y += particle.vy;
+              particle.life--;
+              
+              if (particle.life <= 0) {
+                  flappyGame.particles.splice(i, 1);
+                  continue;
+              }
+              
+              var alpha = particle.life / particle.maxLife;
+              ctx.fillStyle = 'rgba(0, 255, 255, ' + (alpha * 0.8) + ')';
+              ctx.fillRect(particle.x, particle.y, particle.size, particle.size);
+          }
+      }
+      
+      function createEngineParticles() {
+          if (!flappyGame.particles) {
+              flappyGame.particles = [];
+          }
+          
+          for (var i = 0; i < 3; i++) {
+              flappyGame.particles.push({
+                  x: flappyGame.bird.x - 5,
+                  y: flappyGame.bird.y + flappyGame.bird.size / 2 + (Math.random() - 0.5) * 8,
+                  vx: -Math.random() * 2 - 1,
+                  vy: (Math.random() - 0.5) * 1.5,
+                  size: Math.random() * 3 + 1,
+                  life: 20,
+                  maxLife: 20
+              });
+          }
+      }
+ 
+      function gameOver() {
         flappyGame.gameState = 'gameOver';
 
         if (flappyGame.score > flappyGame.bestScore) {
