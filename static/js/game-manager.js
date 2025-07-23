@@ -901,6 +901,7 @@
 
         var size = slidingPuzzleGame.size;
         gridElement.innerHTML = '';
+        gridElement.setAttribute('data-size', size);
         gridElement.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
         gridElement.style.gridTemplateRows = `repeat(${size}, 1fr)`;
 
