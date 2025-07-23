@@ -988,29 +988,96 @@
         updateSlidingPuzzleDisplay();
     }
 
+    // 检查数字华容道是否可解
+    function isSlidingPuzzleSolvable() {
+        var size = slidingPuzzleGame.size;
+        var flatGrid = [];
+        var emptyRow = slidingPuzzleGame.emptyPos.row;
+        
+        // 将网格转换为一维数组，跳过空格
+        for (var i = 0; i < size; i++) {
+            for (var j = 0; j < size; j++) {
+                if (slidingPuzzleGame.grid[i][j] !== 0) {
+                    flatGrid.push(slidingPuzzleGame.grid[i][j]);
+                }
+            }
+        }
+        
+        // 计算逆序对数量
+        var inversions = 0;
+        for (var i = 0; i < flatGrid.length - 1; i++) {
+            for (var j = i + 1; j < flatGrid.length; j++) {
+                if (flatGrid[i] > flatGrid[j]) {
+                    inversions++;
+                }
+            }
+        }
+        
+        if (size % 2 === 1) {
+            // 奇数大小：逆序对数量为偶数时可解
+            return inversions % 2 === 0;
+        } else {
+            // 偶数大小：需要考虑空格位置
+            var emptyRowFromBottom = size - emptyRow;
+            if (emptyRowFromBottom % 2 === 1) {
+                // 空格在奇数行（从底部算起）：逆序对数量为偶数时可解
+                return inversions % 2 === 0;
+            } else {
+                // 空格在偶数行（从底部算起）：逆序对数量为奇数时可解
+                return inversions % 2 === 1;
+            }
+        }
+    }
+
     function shuffleSlidingPuzzle() {
         slidingPuzzleGame.isShuffling = true;
         var size = slidingPuzzleGame.size;
-        var shuffleMoves = size * size * 10; // 充分打乱
+        var maxAttempts = 100; // 最大尝试次数
+        var attempt = 0;
         
-        for (var i = 0; i < shuffleMoves; i++) {
-            var possibleMoves = [];
-            var emptyRow = slidingPuzzleGame.emptyPos.row;
-            var emptyCol = slidingPuzzleGame.emptyPos.col;
+        do {
+            // 重置到有序状态
+            createSlidingPuzzleGrid();
             
-            // 找到所有可能的移动
-            if (emptyRow > 0) possibleMoves.push({ row: emptyRow - 1, col: emptyCol });
-            if (emptyRow < size - 1) possibleMoves.push({ row: emptyRow + 1, col: emptyCol });
-            if (emptyCol > 0) possibleMoves.push({ row: emptyRow, col: emptyCol - 1 });
-            if (emptyCol < size - 1) possibleMoves.push({ row: emptyRow, col: emptyCol + 1 });
+            var shuffleMoves = size * size * 10; // 充分打乱
             
-            // 随机选择一个移动
-            var randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+            for (var i = 0; i < shuffleMoves; i++) {
+                var possibleMoves = [];
+                var emptyRow = slidingPuzzleGame.emptyPos.row;
+                var emptyCol = slidingPuzzleGame.emptyPos.col;
+                
+                // 找到所有可能的移动
+                if (emptyRow > 0) possibleMoves.push({ row: emptyRow - 1, col: emptyCol });
+                if (emptyRow < size - 1) possibleMoves.push({ row: emptyRow + 1, col: emptyCol });
+                if (emptyCol > 0) possibleMoves.push({ row: emptyRow, col: emptyCol - 1 });
+                if (emptyCol < size - 1) possibleMoves.push({ row: emptyRow, col: emptyCol + 1 });
+                
+                // 随机选择一个移动
+                var randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                
+                // 执行移动（不计入步数）
+                slidingPuzzleGame.grid[emptyRow][emptyCol] = slidingPuzzleGame.grid[randomMove.row][randomMove.col];
+                slidingPuzzleGame.grid[randomMove.row][randomMove.col] = 0;
+                slidingPuzzleGame.emptyPos = randomMove;
+            }
             
-            // 执行移动（不计入步数）
-            slidingPuzzleGame.grid[emptyRow][emptyCol] = slidingPuzzleGame.grid[randomMove.row][randomMove.col];
-            slidingPuzzleGame.grid[randomMove.row][randomMove.col] = 0;
-            slidingPuzzleGame.emptyPos = randomMove;
+            attempt++;
+        } while (!isSlidingPuzzleSolvable() && attempt < maxAttempts);
+        
+        // 如果经过多次尝试仍然无解，则进行一次简单的相邻交换来确保可解
+        if (!isSlidingPuzzleSolvable()) {
+            // 找到两个相邻的非空格子进行交换
+            for (var i = 0; i < size; i++) {
+                for (var j = 0; j < size - 1; j++) {
+                    if (slidingPuzzleGame.grid[i][j] !== 0 && slidingPuzzleGame.grid[i][j + 1] !== 0) {
+                        var temp = slidingPuzzleGame.grid[i][j];
+                        slidingPuzzleGame.grid[i][j] = slidingPuzzleGame.grid[i][j + 1];
+                        slidingPuzzleGame.grid[i][j + 1] = temp;
+                        break;
+                    }
+                }
+                if (isSlidingPuzzleSolvable()) break;
+            }
         }
         
         slidingPuzzleGame.isShuffling = false;
