@@ -233,8 +233,8 @@
                         <div class="score-value" id="sudoku-time">00:00</div>
                     </div>
                     <div class="score-container">
-                        <div class="score-label">错误</div>
-                        <div class="score-value" id="sudoku-errors">0</div>
+                        <div class="score-label">剩余提示</div>
+                        <div class="score-value" id="sudoku-hints">8</div>
                     </div>
                 </div>
 
@@ -267,7 +267,6 @@
                             <div class="sudoku-actions">
                                 <button class="game-btn" id="sudoku-new-game">新游戏</button>
                                 <button class="game-btn" id="sudoku-hint">提示</button>
-                                <button class="game-btn" id="sudoku-check">检查</button>
                             </div>
                         </div>
                     </div>
@@ -1113,7 +1112,7 @@
         difficulty: 'easy',
         startTime: null,
         gameTime: 0,
-        errors: 0,
+        hintsRemaining: 8,
         gameState: 'start', // 'start', 'playing', 'completed'
         timer: null
     };
@@ -1130,7 +1129,13 @@
         sudokuGame.selectedCell = null;
         sudokuGame.startTime = null;
         sudokuGame.gameTime = 0;
-        sudokuGame.errors = 0;
+        // 根据难度设置提示次数
+        switch (sudokuGame.difficulty) {
+            case 'easy': sudokuGame.hintsRemaining = 8; break;
+            case 'medium': sudokuGame.hintsRemaining = 4; break;
+            case 'hard': sudokuGame.hintsRemaining = 2; break;
+            default: sudokuGame.hintsRemaining = 8;
+        }
         sudokuGame.gameState = 'start';
         if (sudokuGame.timer) {
             clearInterval(sudokuGame.timer);
@@ -1296,27 +1301,43 @@
             sudokuGame.grid[row][col] = num;
             cell.textContent = num;
             cell.classList.add('user-input');
-            
-            // 检查是否正确
-            if (sudokuGame.solution[row][col] !== num) {
-                cell.classList.add('error');
-                sudokuGame.errors++;
-                updateSudokuDisplay();
+            // 移除即时颜色反馈，不再显示红色或绿色
+            cell.classList.remove('error');
+        }
+        
+        // 检查是否所有格子都填满了
+        if (isGridFull()) {
+            // 检查是否全部正确
+            if (isSudokuComplete()) {
+                sudokuGameComplete();
             } else {
-                cell.classList.remove('error');
-                
-                // 检查是否完成
-                if (isSudokuComplete()) {
-                    sudokuGameComplete();
-                }
+                // 如果有错误，不显示具体哪个格子错了，只是不触发胜利
+                // 玩家需要自己检查和修正错误
             }
         }
     }
 
-    function isSudokuComplete() {
+    function isGridFull() {
         for (var i = 0; i < 9; i++) {
             for (var j = 0; j < 9; j++) {
-                if (sudokuGame.grid[i][j] === 0 || sudokuGame.grid[i][j] !== sudokuGame.solution[i][j]) {
+                if (sudokuGame.grid[i][j] === 0) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    
+    function isSudokuComplete() {
+        // 首先检查是否所有格子都填满了
+        if (!isGridFull()) {
+            return false;
+        }
+        
+        // 然后检查是否所有数字都正确
+        for (var i = 0; i < 9; i++) {
+            for (var j = 0; j < 9; j++) {
+                if (sudokuGame.grid[i][j] !== sudokuGame.solution[i][j]) {
                     return false;
                 }
             }
@@ -1337,6 +1358,15 @@
 
     function startSudokuGame(difficulty) {
         sudokuGame.difficulty = difficulty;
+        
+        // 根据难度设置提示次数
+        switch (difficulty) {
+            case 'easy': sudokuGame.hintsRemaining = 8; break;
+            case 'medium': sudokuGame.hintsRemaining = 4; break;
+            case 'hard': sudokuGame.hintsRemaining = 2; break;
+            default: sudokuGame.hintsRemaining = 8;
+        }
+        
         sudokuGame.gameState = 'playing';
         sudokuGame.startTime = Date.now();
         
@@ -1380,7 +1410,7 @@
             sudokuGame.difficulty === 'easy' ? '简单' : 
             sudokuGame.difficulty === 'medium' ? '中等' : '困难';
         document.getElementById('sudoku-time').textContent = formatTime(sudokuGame.gameTime);
-        document.getElementById('sudoku-errors').textContent = sudokuGame.errors;
+        document.getElementById('sudoku-hints').textContent = sudokuGame.hintsRemaining;
     }
 
     function formatTime(seconds) {
@@ -1452,6 +1482,12 @@
     function getSudokuHint() {
         if (!sudokuGame.selectedCell || sudokuGame.gameState !== 'playing') return;
         
+        // 检查是否还有剩余提示次数
+        if (sudokuGame.hintsRemaining <= 0) {
+            alert('提示次数已用完！');
+            return;
+        }
+        
         var row = sudokuGame.selectedCell.row;
         var col = sudokuGame.selectedCell.col;
         var cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
@@ -1459,28 +1495,17 @@
         if (!cell || cell.classList.contains('given')) return;
         
         var correctNumber = sudokuGame.solution[row][col];
+        sudokuGame.hintsRemaining--;
         inputSudokuNumber(correctNumber);
+        updateSudokuDisplay();
     }
 
     function checkSudokuSolution() {
-        var hasErrors = false;
-        for (var i = 0; i < 9; i++) {
-            for (var j = 0; j < 9; j++) {
-                var cell = document.querySelector(`[data-row="${i}"][data-col="${j}"]`);
-                if (cell && !cell.classList.contains('given')) {
-                    if (sudokuGame.grid[i][j] !== 0 && sudokuGame.grid[i][j] !== sudokuGame.solution[i][j]) {
-                        cell.classList.add('error');
-                        hasErrors = true;
-                    } else {
-                        cell.classList.remove('error');
-                    }
-                }
-            }
-        }
-        
-        if (!hasErrors && isSudokuComplete()) {
+        // 只检查是否完成，不显示具体错误位置
+        if (isGridFull() && isSudokuComplete()) {
             sudokuGameComplete();
         }
+        // 如果没有完成，不给任何提示，让玩家自己找错误
     }
 
     // 贪吃蛇游戏逻辑
@@ -2385,7 +2410,6 @@
         var sudokuRestart = document.getElementById('sudoku-restart');
         var sudokuNewGame = document.getElementById('sudoku-new-game');
         var sudokuHint = document.getElementById('sudoku-hint');
-        var sudokuCheck = document.getElementById('sudoku-check');
         var sudokuModal = document.getElementById('sudoku-modal');
 
         if (sudokuClose) sudokuClose.addEventListener('click', closeSudokuGame);
@@ -2396,7 +2420,6 @@
             resetSudokuGame();
         });
         if (sudokuHint) sudokuHint.addEventListener('click', getSudokuHint);
-        if (sudokuCheck) sudokuCheck.addEventListener('click', checkSudokuSolution);
 
         // 点击背景关闭数独
         if (sudokuModal) {
