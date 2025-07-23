@@ -329,6 +329,13 @@
                             </div>
                             <div class="sliding-puzzle-actions">
                                 <button class="game-btn" id="sliding-puzzle-shuffle">打乱</button>
+                                <button class="game-btn" id="sliding-puzzle-ai" disabled>AI求解</button>
+                                <button class="game-btn" id="sliding-puzzle-ai-pause" disabled style="display:none;">暂停</button>
+                                <div class="ai-speed-control" id="sliding-puzzle-speed-control" style="display:none;">
+                                    <label for="ai-speed-slider">速度:</label>
+                                    <input type="range" id="ai-speed-slider" min="100" max="2000" value="1000" step="100">
+                                    <span id="ai-speed-display">1.0s</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -844,7 +851,13 @@
         gameTime: 0,
         gameState: 'start', // 'start', 'playing', 'completed'
         timer: null,
-        isShuffling: false
+        isShuffling: false,
+        aiMode: false,
+        aiPaused: false,
+        aiSolution: [],
+        aiStepIndex: 0,
+        aiTimer: null,
+        aiSpeed: 1000 // AI执行速度，毫秒
     };
 
     function initSlidingPuzzleGame() {
@@ -859,6 +872,7 @@
         slidingPuzzleGame.gameTime = 0;
         slidingPuzzleGame.gameState = 'start';
         slidingPuzzleGame.isShuffling = false;
+        stopAIMode();
         if (slidingPuzzleGame.timer) {
             clearInterval(slidingPuzzleGame.timer);
             slidingPuzzleGame.timer = null;
@@ -870,7 +884,7 @@
         var size = slidingPuzzleGame.size;
         slidingPuzzleGame.grid = [];
         slidingPuzzleGame.emptyPos = { row: size - 1, col: size - 1 };
-        
+
         // 创建有序网格
         for (var i = 0; i < size; i++) {
             slidingPuzzleGame.grid[i] = [];
@@ -884,56 +898,62 @@
     function renderSlidingPuzzleGrid() {
         var gridElement = document.getElementById('sliding-puzzle-grid');
         if (!gridElement) return;
-        
+
         var size = slidingPuzzleGame.size;
         gridElement.innerHTML = '';
         gridElement.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
         gridElement.style.gridTemplateRows = `repeat(${size}, 1fr)`;
-        
+
         for (var i = 0; i < size; i++) {
             for (var j = 0; j < size; j++) {
                 var cell = document.createElement('div');
                 cell.className = 'sliding-puzzle-cell';
                 cell.dataset.row = i;
                 cell.dataset.col = j;
-                
+
                 var value = slidingPuzzleGame.grid[i][j];
                 if (value === 0) {
                     cell.classList.add('empty');
                 } else {
                     cell.textContent = value;
-                    cell.addEventListener('click', function() {
+                    cell.addEventListener('click', function () {
                         var row = parseInt(this.dataset.row);
                         var col = parseInt(this.dataset.col);
                         moveSlidingPuzzleTile(row, col);
                     });
                 }
-                
+
                 gridElement.appendChild(cell);
             }
         }
     }
 
-    function moveSlidingPuzzleTile(row, col) {
+    function moveSlidingPuzzleTile(row, col, isAIMove) {
         if (slidingPuzzleGame.gameState !== 'playing' || slidingPuzzleGame.isShuffling) return;
-        
+
+        // 在AI模式下且AI正在运行（未暂停）时不允许手动移动（但允许AI移动）
+        if (slidingPuzzleGame.aiMode && !slidingPuzzleGame.aiPaused && !isAIMove) return;
+
         var emptyRow = slidingPuzzleGame.emptyPos.row;
         var emptyCol = slidingPuzzleGame.emptyPos.col;
-        
+
         // 检查是否可以移动（相邻且在同一行或列）
         var canMove = (Math.abs(row - emptyRow) === 1 && col === emptyCol) ||
-                     (Math.abs(col - emptyCol) === 1 && row === emptyRow);
-        
+            (Math.abs(col - emptyCol) === 1 && row === emptyRow);
+
         if (canMove) {
             // 交换位置
             slidingPuzzleGame.grid[emptyRow][emptyCol] = slidingPuzzleGame.grid[row][col];
             slidingPuzzleGame.grid[row][col] = 0;
             slidingPuzzleGame.emptyPos = { row: row, col: col };
-            
-            slidingPuzzleGame.moves++;
+
+            // 只有非AI移动才增加步数
+            if (!isAIMove) {
+                slidingPuzzleGame.moves++;
+            }
             updateSlidingPuzzleDisplay();
             renderSlidingPuzzleGrid();
-            
+
             // 检查是否完成
             if (isSlidingPuzzleComplete()) {
                 slidingPuzzleGameComplete();
@@ -959,7 +979,7 @@
         if (slidingPuzzleGame.timer) {
             clearInterval(slidingPuzzleGame.timer);
         }
-        
+
         var finalTime = formatTime(slidingPuzzleGame.gameTime);
         document.getElementById('sliding-puzzle-final-moves').textContent = '步数: ' + slidingPuzzleGame.moves;
         document.getElementById('sliding-puzzle-final-time').textContent = '用时: ' + finalTime;
@@ -979,6 +999,24 @@
         shuffleSlidingPuzzle();
         renderSlidingPuzzleGrid();
         
+        // 只在3x3模式下启用AI按钮，其他模式禁用
+        var aiButton = document.getElementById('sliding-puzzle-ai');
+        if (aiButton) {
+            if (size === 3) {
+                aiButton.disabled = false;
+                aiButton.style.display = 'inline-block';
+                aiButton.title = '';
+                aiButton.textContent = 'AI求解';
+                aiButton.style.opacity = '1';
+            } else {
+                aiButton.disabled = true;
+                aiButton.style.display = 'inline-block';
+                aiButton.title = '仅3x3模式支持AI求解';
+                aiButton.textContent = '仅3x3支持AI';
+                aiButton.style.opacity = '0.5';
+            }
+        }
+        
         // 开始计时器
         slidingPuzzleGame.timer = setInterval(function() {
             slidingPuzzleGame.gameTime = Math.floor((Date.now() - slidingPuzzleGame.startTime) / 1000);
@@ -993,7 +1031,7 @@
         var size = slidingPuzzleGame.size;
         var flatGrid = [];
         var emptyRow = slidingPuzzleGame.emptyPos.row;
-        
+
         // 将网格转换为一维数组，跳过空格
         for (var i = 0; i < size; i++) {
             for (var j = 0; j < size; j++) {
@@ -1002,7 +1040,7 @@
                 }
             }
         }
-        
+
         // 计算逆序对数量
         var inversions = 0;
         for (var i = 0; i < flatGrid.length - 1; i++) {
@@ -1012,7 +1050,7 @@
                 }
             }
         }
-        
+
         if (size % 2 === 1) {
             // 奇数大小：逆序对数量为偶数时可解
             return inversions % 2 === 0;
@@ -1034,36 +1072,36 @@
         var size = slidingPuzzleGame.size;
         var maxAttempts = 100; // 最大尝试次数
         var attempt = 0;
-        
+
         do {
             // 重置到有序状态
             createSlidingPuzzleGrid();
-            
+
             var shuffleMoves = size * size * 10; // 充分打乱
-            
+
             for (var i = 0; i < shuffleMoves; i++) {
                 var possibleMoves = [];
                 var emptyRow = slidingPuzzleGame.emptyPos.row;
                 var emptyCol = slidingPuzzleGame.emptyPos.col;
-                
+
                 // 找到所有可能的移动
                 if (emptyRow > 0) possibleMoves.push({ row: emptyRow - 1, col: emptyCol });
                 if (emptyRow < size - 1) possibleMoves.push({ row: emptyRow + 1, col: emptyCol });
                 if (emptyCol > 0) possibleMoves.push({ row: emptyRow, col: emptyCol - 1 });
                 if (emptyCol < size - 1) possibleMoves.push({ row: emptyRow, col: emptyCol + 1 });
-                
+
                 // 随机选择一个移动
                 var randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-                
+
                 // 执行移动（不计入步数）
                 slidingPuzzleGame.grid[emptyRow][emptyCol] = slidingPuzzleGame.grid[randomMove.row][randomMove.col];
                 slidingPuzzleGame.grid[randomMove.row][randomMove.col] = 0;
                 slidingPuzzleGame.emptyPos = randomMove;
             }
-            
+
             attempt++;
         } while (!isSlidingPuzzleSolvable() && attempt < maxAttempts);
-        
+
         // 如果经过多次尝试仍然无解，则进行一次简单的相邻交换来确保可解
         if (!isSlidingPuzzleSolvable()) {
             // 找到两个相邻的非空格子进行交换
@@ -1079,7 +1117,7 @@
                 if (isSlidingPuzzleSolvable()) break;
             }
         }
-        
+
         slidingPuzzleGame.isShuffling = false;
         slidingPuzzleGame.moves = 0; // 重置步数
     }
@@ -1093,22 +1131,22 @@
     function bindSlidingPuzzleEvents() {
         // 难度选择按钮
         var sizeBtns = document.querySelectorAll('.size-btn');
-        sizeBtns.forEach(function(btn) {
-            btn.addEventListener('click', function() {
+        sizeBtns.forEach(function (btn) {
+            btn.addEventListener('click', function () {
                 startSlidingPuzzleGame(parseInt(this.dataset.size));
             });
         });
-        
+
         // 键盘事件
-        document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', function (e) {
             var modal = document.getElementById('sliding-puzzle-modal');
-            if (modal && modal.style.display === 'flex' && slidingPuzzleGame.gameState === 'playing') {
+            if (modal && modal.style.display === 'flex' && slidingPuzzleGame.gameState === 'playing' && (!slidingPuzzleGame.aiMode || slidingPuzzleGame.aiPaused)) {
                 var emptyRow = slidingPuzzleGame.emptyPos.row;
                 var emptyCol = slidingPuzzleGame.emptyPos.col;
                 var targetRow = emptyRow;
                 var targetCol = emptyCol;
-                
-                switch(e.key) {
+
+                switch (e.key) {
                     case 'ArrowUp':
                         if (emptyRow < slidingPuzzleGame.size - 1) targetRow = emptyRow + 1;
                         break;
@@ -1125,7 +1163,7 @@
                         closeSlidingPuzzleGame();
                         return;
                 }
-                
+
                 if (targetRow !== emptyRow || targetCol !== emptyCol) {
                     e.preventDefault();
                     moveSlidingPuzzleTile(targetRow, targetCol);
@@ -1148,6 +1186,7 @@
         var modal = document.getElementById('sliding-puzzle-modal');
         if (modal) {
             modal.style.display = 'none';
+            stopAIMode();
             if (slidingPuzzleGame.timer) {
                 clearInterval(slidingPuzzleGame.timer);
                 slidingPuzzleGame.timer = null;
@@ -1166,6 +1205,329 @@
             renderSlidingPuzzleGrid();
             slidingPuzzleGame.moves = 0;
             updateSlidingPuzzleDisplay();
+        }
+    }
+
+    // AI求解相关函数
+    function solveSlidingPuzzleWithAI() {
+        if (slidingPuzzleGame.gameState !== 'playing') return;
+        
+        // 检查按钮是否被禁用
+        var aiButton = document.getElementById('sliding-puzzle-ai');
+        if (aiButton && aiButton.disabled) {
+            alert('AI求解仅支持3x3模式！');
+            return;
+        }
+        
+        // 检查是否为3x3模式
+        if (slidingPuzzleGame.size !== 3) {
+            alert('AI求解仅支持3x3模式！');
+            return;
+        }
+        
+        // 检查是否已经完成
+        if (isSlidingPuzzleComplete()) {
+            alert('拼图已经完成了！');
+            return;
+        }
+        
+        // 如果AI模式已经开启但暂停，则重新开始
+        if (slidingPuzzleGame.aiMode && slidingPuzzleGame.aiPaused) {
+            slidingPuzzleGame.aiPaused = false;
+            var pauseButton = document.getElementById('sliding-puzzle-ai-pause');
+            if (pauseButton) {
+                pauseButton.textContent = '暂停';
+            }
+            
+            document.getElementById('sliding-puzzle-ai').textContent = '求解中...';
+            document.getElementById('sliding-puzzle-ai').disabled = true;
+            
+            // 重新计算当前局面的解决方案
+            setTimeout(function() {
+                var solution = findSlidingPuzzleSolution();
+                if (solution && solution.length > 0) {
+                    slidingPuzzleGame.aiSolution = solution;
+                    slidingPuzzleGame.aiStepIndex = 0;
+                    executeAISolution();
+                } else {
+                    alert('无法找到解决方案！');
+                    stopAIMode();
+                }
+            }, 100);
+            return;
+        } else {
+            slidingPuzzleGame.aiMode = true;
+            slidingPuzzleGame.aiPaused = false;
+            
+            // 显示暂停按钮和速度控件
+            document.getElementById('sliding-puzzle-ai-pause').style.display = 'inline-block';
+            document.getElementById('sliding-puzzle-ai-pause').disabled = false;
+            document.getElementById('sliding-puzzle-ai-pause').textContent = '暂停';
+            document.getElementById('sliding-puzzle-speed-control').style.display = 'block';
+            
+            // 更新速度显示
+            updateSpeedDisplay();
+        }
+        
+        document.getElementById('sliding-puzzle-ai').textContent = '求解中...';
+        document.getElementById('sliding-puzzle-ai').disabled = true;
+        
+        // 使用setTimeout让界面有时间更新
+        setTimeout(function() {
+            var solution = findSlidingPuzzleSolution();
+            if (solution && solution.length > 0) {
+                slidingPuzzleGame.aiSolution = solution;
+                slidingPuzzleGame.aiStepIndex = 0;
+                executeAISolution();
+            } else {
+                alert('无法找到解决方案！');
+                stopAIMode();
+            }
+        }, 100);
+    }
+
+    function findSlidingPuzzleSolution() {
+        var startState = {
+            grid: slidingPuzzleGame.grid.map(row => row.slice()),
+            emptyPos: { ...slidingPuzzleGame.emptyPos },
+            g: 0,
+            h: 0,
+            f: 0,
+            parent: null,
+            move: null
+        };
+
+        startState.h = calculateManhattanDistance(startState);
+        startState.f = startState.g + startState.h;
+
+        var openList = [startState];
+        var closedList = new Set();
+        var maxIterations = 10000; // 防止无限循环
+        var iterations = 0;
+
+        while (openList.length > 0 && iterations < maxIterations) {
+            iterations++;
+
+            // 找到f值最小的状态
+            openList.sort((a, b) => a.f - b.f);
+            var currentState = openList.shift();
+
+            // 检查是否到达目标状态
+            if (isGoalState(currentState)) {
+                return reconstructPath(currentState);
+            }
+
+            var stateKey = getStateKey(currentState);
+            if (closedList.has(stateKey)) continue;
+            closedList.add(stateKey);
+
+            // 生成所有可能的下一步状态
+            var neighbors = getNeighborStates(currentState);
+
+            for (var i = 0; i < neighbors.length; i++) {
+                var neighbor = neighbors[i];
+                var neighborKey = getStateKey(neighbor);
+
+                if (closedList.has(neighborKey)) continue;
+
+                neighbor.g = currentState.g + 1;
+                neighbor.h = calculateManhattanDistance(neighbor);
+                neighbor.f = neighbor.g + neighbor.h;
+                neighbor.parent = currentState;
+
+                // 检查是否已在开放列表中
+                var existingIndex = openList.findIndex(state => getStateKey(state) === neighborKey);
+                if (existingIndex === -1) {
+                    openList.push(neighbor);
+                } else if (neighbor.g < openList[existingIndex].g) {
+                    openList[existingIndex] = neighbor;
+                }
+            }
+        }
+
+        return null; // 无解
+    }
+
+    function calculateManhattanDistance(state) {
+        var distance = 0;
+        var size = slidingPuzzleGame.size;
+
+        for (var i = 0; i < size; i++) {
+            for (var j = 0; j < size; j++) {
+                var value = state.grid[i][j];
+                if (value !== 0) {
+                    var targetRow = Math.floor((value - 1) / size);
+                    var targetCol = (value - 1) % size;
+                    distance += Math.abs(i - targetRow) + Math.abs(j - targetCol);
+                }
+            }
+        }
+
+        return distance;
+    }
+
+    function isGoalState(state) {
+        var size = slidingPuzzleGame.size;
+        for (var i = 0; i < size; i++) {
+            for (var j = 0; j < size; j++) {
+                var expectedValue = (i === size - 1 && j === size - 1) ? 0 : i * size + j + 1;
+                if (state.grid[i][j] !== expectedValue) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    function getStateKey(state) {
+        return state.grid.map(row => row.join(',')).join(';');
+    }
+
+    function getNeighborStates(state) {
+        var neighbors = [];
+        var emptyRow = state.emptyPos.row;
+        var emptyCol = state.emptyPos.col;
+        var size = slidingPuzzleGame.size;
+
+        var directions = [
+            { row: -1, col: 0, name: 'up' },
+            { row: 1, col: 0, name: 'down' },
+            { row: 0, col: -1, name: 'left' },
+            { row: 0, col: 1, name: 'right' }
+        ];
+
+        for (var i = 0; i < directions.length; i++) {
+            var dir = directions[i];
+            var newRow = emptyRow + dir.row;
+            var newCol = emptyCol + dir.col;
+
+            if (newRow >= 0 && newRow < size && newCol >= 0 && newCol < size) {
+                var newState = {
+                    grid: state.grid.map(row => row.slice()),
+                    emptyPos: { row: newRow, col: newCol },
+                    move: { from: { row: newRow, col: newCol }, to: { row: emptyRow, col: emptyCol } }
+                };
+
+                // 交换空格和目标位置
+                newState.grid[emptyRow][emptyCol] = newState.grid[newRow][newCol];
+                newState.grid[newRow][newCol] = 0;
+
+                neighbors.push(newState);
+            }
+        }
+
+        return neighbors;
+    }
+
+    function reconstructPath(goalState) {
+        var path = [];
+        var current = goalState;
+
+        while (current.parent) {
+            path.unshift(current.move);
+            current = current.parent;
+        }
+
+        return path;
+    }
+
+    function executeAISolution() {
+        if (slidingPuzzleGame.aiStepIndex >= slidingPuzzleGame.aiSolution.length) {
+            stopAIMode();
+            return;
+        }
+
+        // 如果暂停了，不执行下一步
+        if (slidingPuzzleGame.aiPaused) {
+            return;
+        }
+
+        var move = slidingPuzzleGame.aiSolution[slidingPuzzleGame.aiStepIndex];
+        moveSlidingPuzzleTile(move.from.row, move.from.col, true);
+
+        slidingPuzzleGame.aiStepIndex++;
+
+        // 检查是否完成
+        if (isSlidingPuzzleComplete()) {
+            stopAIMode();
+            return;
+        }
+
+        // 设置下一步的定时器，使用当前速度设置
+        slidingPuzzleGame.aiTimer = setTimeout(executeAISolution, slidingPuzzleGame.aiSpeed);
+    }
+
+    function stopAIMode() {
+        slidingPuzzleGame.aiMode = false;
+        slidingPuzzleGame.aiPaused = false;
+        slidingPuzzleGame.aiSolution = [];
+        slidingPuzzleGame.aiStepIndex = 0;
+
+        if (slidingPuzzleGame.aiTimer) {
+            clearTimeout(slidingPuzzleGame.aiTimer);
+            slidingPuzzleGame.aiTimer = null;
+        }
+
+        var aiButton = document.getElementById('sliding-puzzle-ai');
+        if (aiButton) {
+            aiButton.textContent = 'AI求解';
+            aiButton.disabled = slidingPuzzleGame.gameState !== 'playing';
+        }
+
+        // 隐藏暂停按钮和速度控件
+        document.getElementById('sliding-puzzle-ai-pause').style.display = 'none';
+        document.getElementById('sliding-puzzle-speed-control').style.display = 'none';
+    }
+
+    function toggleAIPause() {
+        if (!slidingPuzzleGame.aiMode) return;
+        
+        slidingPuzzleGame.aiPaused = !slidingPuzzleGame.aiPaused;
+        var pauseButton = document.getElementById('sliding-puzzle-ai-pause');
+        var aiButton = document.getElementById('sliding-puzzle-ai');
+        
+        if (slidingPuzzleGame.aiPaused) {
+            pauseButton.textContent = '继续';
+            // 清除当前的定时器
+            if (slidingPuzzleGame.aiTimer) {
+                clearTimeout(slidingPuzzleGame.aiTimer);
+                slidingPuzzleGame.aiTimer = null;
+            }
+            // 暂停时允许重新开始AI求解
+            if (aiButton) {
+                aiButton.textContent = 'AI求解';
+                aiButton.disabled = false;
+            }
+        } else {
+            pauseButton.textContent = '暂停';
+            // 继续执行AI时，重新计算当前局面的解决方案
+            if (aiButton) {
+                aiButton.textContent = '求解中...';
+                aiButton.disabled = true;
+            }
+            
+            // 重新计算解决方案
+            setTimeout(function() {
+                var solution = findSlidingPuzzleSolution();
+                if (solution && solution.length > 0) {
+                    slidingPuzzleGame.aiSolution = solution;
+                    slidingPuzzleGame.aiStepIndex = 0;
+                    executeAISolution();
+                } else {
+                    alert('无法找到解决方案！');
+                    stopAIMode();
+                }
+            }, 100);
+        }
+    }
+
+    function updateSpeedDisplay() {
+        var speedSlider = document.getElementById('ai-speed-slider');
+        var speedDisplay = document.getElementById('ai-speed-display');
+        if (speedSlider && speedDisplay) {
+            var speed = parseInt(speedSlider.value);
+            slidingPuzzleGame.aiSpeed = speed;
+            speedDisplay.textContent = (speed / 1000).toFixed(1) + 's';
         }
     }
 
@@ -1216,22 +1578,22 @@
         if (!gridElement) return;
 
         gridElement.innerHTML = '';
-        
+
         for (var i = 0; i < 9; i++) {
             for (var j = 0; j < 9; j++) {
                 var cell = document.createElement('div');
                 cell.className = 'sudoku-cell';
                 cell.dataset.row = i;
                 cell.dataset.col = j;
-                
+
                 // 添加区域边框样式
                 if (i % 3 === 0 && i !== 0) cell.classList.add('border-top');
                 if (j % 3 === 0 && j !== 0) cell.classList.add('border-left');
-                
-                cell.addEventListener('click', function() {
+
+                cell.addEventListener('click', function () {
                     selectSudokuCell(parseInt(this.dataset.row), parseInt(this.dataset.col));
                 });
-                
+
                 gridElement.appendChild(cell);
             }
         }
@@ -1240,7 +1602,7 @@
     function generateSudoku(difficulty) {
         // 生成完整的数独解决方案
         generateCompleteSudoku();
-        
+
         // 根据难度移除数字
         var cellsToRemove;
         switch (difficulty) {
@@ -1249,14 +1611,14 @@
             case 'hard': cellsToRemove = 60; break;
             default: cellsToRemove = 40;
         }
-        
+
         // 复制解决方案到游戏网格
         for (var i = 0; i < 9; i++) {
             for (var j = 0; j < 9; j++) {
                 sudokuGame.grid[i][j] = sudokuGame.solution[i][j];
             }
         }
-        
+
         // 随机移除数字
         var removed = 0;
         while (removed < cellsToRemove) {
@@ -1276,7 +1638,7 @@
                 sudokuGame.solution[i][j] = 0;
             }
         }
-        
+
         // 使用回溯算法生成完整的数独
         solveSudoku(sudokuGame.solution);
     }
@@ -1293,7 +1655,7 @@
                         numbers[i] = numbers[j];
                         numbers[j] = temp;
                     }
-                    
+
                     for (var k = 0; k < numbers.length; k++) {
                         var num = numbers[k];
                         if (isValidSudokuMove(grid, row, col, num)) {
@@ -1316,12 +1678,12 @@
         for (var j = 0; j < 9; j++) {
             if (grid[row][j] === num) return false;
         }
-        
+
         // 检查列
         for (var i = 0; i < 9; i++) {
             if (grid[i][col] === num) return false;
         }
-        
+
         // 检查3x3区域
         var boxRow = Math.floor(row / 3) * 3;
         var boxCol = Math.floor(col / 3) * 3;
@@ -1330,17 +1692,17 @@
                 if (grid[i][j] === num) return false;
             }
         }
-        
+
         return true;
     }
 
     function selectSudokuCell(row, col) {
         if (sudokuGame.gameState !== 'playing') return;
-        
+
         // 移除之前选中的样式
         var prevSelected = document.querySelector('.sudoku-cell.selected');
         if (prevSelected) prevSelected.classList.remove('selected');
-        
+
         // 选中新单元格
         var cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
         if (cell) {
@@ -1351,13 +1713,13 @@
 
     function inputSudokuNumber(num) {
         if (!sudokuGame.selectedCell || sudokuGame.gameState !== 'playing') return;
-        
+
         var row = sudokuGame.selectedCell.row;
         var col = sudokuGame.selectedCell.col;
         var cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-        
+
         if (!cell || cell.classList.contains('given')) return;
-        
+
         if (num === 0) {
             // 清除数字
             sudokuGame.grid[row][col] = 0;
@@ -1371,7 +1733,7 @@
             // 移除即时颜色反馈，不再显示红色或绿色
             cell.classList.remove('error');
         }
-        
+
         // 检查是否所有格子都填满了
         if (isGridFull()) {
             // 检查是否全部正确
@@ -1394,13 +1756,13 @@
         }
         return true;
     }
-    
+
     function isSudokuComplete() {
         // 首先检查是否所有格子都填满了
         if (!isGridFull()) {
             return false;
         }
-        
+
         // 然后检查是否所有数字都正确
         for (var i = 0; i < 9; i++) {
             for (var j = 0; j < 9; j++) {
@@ -1417,7 +1779,7 @@
         if (sudokuGame.timer) {
             clearInterval(sudokuGame.timer);
         }
-        
+
         var finalTime = formatTime(sudokuGame.gameTime);
         document.getElementById('sudoku-final-time').textContent = '用时: ' + finalTime;
         document.getElementById('sudoku-game-over').style.display = 'flex';
@@ -1425,7 +1787,7 @@
 
     function startSudokuGame(difficulty) {
         sudokuGame.difficulty = difficulty;
-        
+
         // 根据难度设置提示次数
         switch (difficulty) {
             case 'easy': sudokuGame.hintsRemaining = 8; break;
@@ -1433,22 +1795,22 @@
             case 'hard': sudokuGame.hintsRemaining = 2; break;
             default: sudokuGame.hintsRemaining = 8;
         }
-        
+
         sudokuGame.gameState = 'playing';
         sudokuGame.startTime = Date.now();
-        
+
         document.getElementById('sudoku-start-screen').style.display = 'none';
         document.getElementById('sudoku-game-over').style.display = 'none';
-        
+
         generateSudoku(difficulty);
         renderSudokuGrid();
-        
+
         // 开始计时器
-        sudokuGame.timer = setInterval(function() {
+        sudokuGame.timer = setInterval(function () {
             sudokuGame.gameTime = Math.floor((Date.now() - sudokuGame.startTime) / 1000);
             updateSudokuDisplay();
         }, 1000);
-        
+
         updateSudokuDisplay();
     }
 
@@ -1459,11 +1821,11 @@
                 if (cell) {
                     cell.textContent = sudokuGame.grid[i][j] || '';
                     cell.className = 'sudoku-cell';
-                    
+
                     // 添加区域边框样式
                     if (i % 3 === 0 && i !== 0) cell.classList.add('border-top');
                     if (j % 3 === 0 && j !== 0) cell.classList.add('border-left');
-                    
+
                     if (sudokuGame.grid[i][j] !== 0) {
                         cell.classList.add('given');
                     }
@@ -1473,9 +1835,9 @@
     }
 
     function updateSudokuDisplay() {
-        document.getElementById('sudoku-difficulty').textContent = 
-            sudokuGame.difficulty === 'easy' ? '简单' : 
-            sudokuGame.difficulty === 'medium' ? '中等' : '困难';
+        document.getElementById('sudoku-difficulty').textContent =
+            sudokuGame.difficulty === 'easy' ? '简单' :
+                sudokuGame.difficulty === 'medium' ? '中等' : '困难';
         document.getElementById('sudoku-time').textContent = formatTime(sudokuGame.gameTime);
         document.getElementById('sudoku-hints').textContent = sudokuGame.hintsRemaining;
     }
@@ -1489,22 +1851,22 @@
     function bindSudokuEvents() {
         // 难度选择按钮
         var difficultyBtns = document.querySelectorAll('.difficulty-btn');
-        difficultyBtns.forEach(function(btn) {
-            btn.addEventListener('click', function() {
+        difficultyBtns.forEach(function (btn) {
+            btn.addEventListener('click', function () {
                 startSudokuGame(this.dataset.difficulty);
             });
         });
-        
+
         // 数字按钮
         var numberBtns = document.querySelectorAll('.number-btn');
-        numberBtns.forEach(function(btn) {
-            btn.addEventListener('click', function() {
+        numberBtns.forEach(function (btn) {
+            btn.addEventListener('click', function () {
                 inputSudokuNumber(parseInt(this.dataset.number));
             });
         });
-        
+
         // 键盘事件
-        document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', function (e) {
             var modal = document.getElementById('sudoku-modal');
             if (modal && modal.style.display === 'flex') {
                 if (e.key >= '1' && e.key <= '9') {
@@ -1548,19 +1910,19 @@
 
     function getSudokuHint() {
         if (!sudokuGame.selectedCell || sudokuGame.gameState !== 'playing') return;
-        
+
         // 检查是否还有剩余提示次数
         if (sudokuGame.hintsRemaining <= 0) {
             alert('提示次数已用完！');
             return;
         }
-        
+
         var row = sudokuGame.selectedCell.row;
         var col = sudokuGame.selectedCell.col;
         var cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-        
+
         if (!cell || cell.classList.contains('given')) return;
-        
+
         var correctNumber = sudokuGame.solution[row][col];
         sudokuGame.hintsRemaining--;
         inputSudokuNumber(correctNumber);
@@ -1718,7 +2080,7 @@
         } else if (head.x >= snakeGame.tileCount) {
             head.x = 0; // 从左边出现
         }
-        
+
         if (head.y < 0) {
             head.y = snakeGame.tileCount - 1; // 从下边出现
         } else if (head.y >= snakeGame.tileCount) {
@@ -1989,20 +2351,20 @@
 
         // 绘制赛博朋克背景
         drawCyberpunkBackground(ctx);
-        
+
         // 绘制星空
         drawStars(ctx);
-        
+
         // 绘制赛博朋克建筑物（管道）
         drawCyberpunkBuildings(ctx);
-        
+
         // 绘制赛博朋克无人机（小鸟）
         drawCyberpunkDrone(ctx);
-        
+
         // 绘制粒子效果
         drawParticles(ctx);
     }
-    
+
     function drawCyberpunkBackground(ctx) {
         // 深空背景渐变
         var gradient = ctx.createLinearGradient(0, 0, 0, flappyGame.canvas.height);
@@ -2015,7 +2377,7 @@
         // 网格线
         ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
         ctx.lineWidth = 1;
-        
+
         // 水平网格
         for (var y = 0; y < flappyGame.canvas.height; y += 40) {
             ctx.beginPath();
@@ -2023,7 +2385,7 @@
             ctx.lineTo(flappyGame.canvas.width, y);
             ctx.stroke();
         }
-        
+
         // 垂直网格
         for (var x = 0; x < flappyGame.canvas.width; x += 40) {
             ctx.beginPath();
@@ -2039,7 +2401,7 @@
         ctx.fillStyle = cityGlow;
         ctx.fillRect(0, flappyGame.canvas.height - 100, flappyGame.canvas.width, 100);
     }
-    
+
     function drawStars(ctx) {
         if (!flappyGame.stars) {
             flappyGame.stars = [];
@@ -2053,7 +2415,7 @@
                 });
             }
         }
-        
+
         for (var i = 0; i < flappyGame.stars.length; i++) {
             var star = flappyGame.stars[i];
             star.x -= star.speed;
@@ -2061,233 +2423,233 @@
                 star.x = flappyGame.canvas.width;
                 star.y = Math.random() * flappyGame.canvas.height;
             }
-            
+
             ctx.fillStyle = 'rgba(255, 255, 255, ' + star.brightness + ')';
             ctx.fillRect(star.x, star.y, star.size, star.size);
         }
-     }
-     
-     function drawCyberpunkBuildings(ctx) {
-         for (var i = 0; i < flappyGame.pipes.length; i++) {
-             var pipe = flappyGame.pipes[i];
-             
-             // 初始化建筑窗户（如果还没有）
-             if (!pipe.windows) {
-                 pipe.windows = generateBuildingWindows(pipe);
-             }
-             
-             // 建筑结构渐变
-             var buildingGradient = ctx.createLinearGradient(pipe.x, 0, pipe.x + flappyGame.pipeWidth, 0);
-             buildingGradient.addColorStop(0, '#1a1a2e');
-             buildingGradient.addColorStop(0.5, '#16213e');
-             buildingGradient.addColorStop(1, '#0f3460');
-             
-             // 上建筑
-             ctx.fillStyle = buildingGradient;
-             ctx.fillRect(pipe.x, 0, flappyGame.pipeWidth, pipe.topHeight);
-             
-             // 下建筑
-             ctx.fillRect(pipe.x, pipe.bottomY, flappyGame.pipeWidth, flappyGame.canvas.height - pipe.bottomY);
-             
-             // 建筑轮廓
-             ctx.strokeStyle = '#00ffff';
-             ctx.lineWidth = 2;
-             ctx.strokeRect(pipe.x, 0, flappyGame.pipeWidth, pipe.topHeight);
-             ctx.strokeRect(pipe.x, pipe.bottomY, flappyGame.pipeWidth, flappyGame.canvas.height - pipe.bottomY);
-             
-             // 霓虹边缘
-             ctx.strokeStyle = '#ff00ff';
-             ctx.lineWidth = 1;
-             ctx.beginPath();
-             ctx.moveTo(pipe.x, 0);
-             ctx.lineTo(pipe.x, pipe.topHeight);
-             ctx.moveTo(pipe.x + flappyGame.pipeWidth, 0);
-             ctx.lineTo(pipe.x + flappyGame.pipeWidth, pipe.topHeight);
-             ctx.moveTo(pipe.x, pipe.bottomY);
-             ctx.lineTo(pipe.x, flappyGame.canvas.height);
-             ctx.moveTo(pipe.x + flappyGame.pipeWidth, pipe.bottomY);
-             ctx.lineTo(pipe.x + flappyGame.pipeWidth, flappyGame.canvas.height);
-             ctx.stroke();
-             
-             // 建筑窗户
-             for (var j = 0; j < pipe.windows.length; j++) {
-                 var window = pipe.windows[j];
-                 if (window.lit) {
-                     ctx.fillStyle = window.color;
-                     ctx.fillRect(pipe.x + window.x, window.y, window.size, window.size);
-                     
-                     // 窗户光晕
-                     var windowGlow = ctx.createRadialGradient(
-                         pipe.x + window.x + window.size/2, 
-                         window.y + window.size/2, 
-                         0, 
-                         pipe.x + window.x + window.size/2, 
-                         window.y + window.size/2, 
-                         window.size * 2
-                     );
-                     windowGlow.addColorStop(0, window.color);
-                     windowGlow.addColorStop(1, 'transparent');
-                     ctx.fillStyle = windowGlow;
-                     ctx.fillRect(
-                         pipe.x + window.x - window.size/2, 
-                         window.y - window.size/2, 
-                         window.size * 2, 
-                         window.size * 2
-                     );
-                 }
-             }
-             
-             // 警告灯
-             if (Math.random() > 0.95) {
-                 ctx.fillStyle = '#ff0000';
-                 ctx.fillRect(pipe.x + flappyGame.pipeWidth/2 - 2, pipe.topHeight - 5, 4, 4);
-                 ctx.fillRect(pipe.x + flappyGame.pipeWidth/2 - 2, pipe.bottomY + 1, 4, 4);
-             }
-         }
-     }
-     
-     function generateBuildingWindows(pipe) {
-         var windows = [];
-         var windowSize = 6;
-         var windowSpacing = 12;
-         var colors = ['#00ffff', '#ff00ff', '#00ff00', '#ffff00'];
-         
-         // 上建筑窗户
-         for (var y = 15; y < pipe.topHeight - 15; y += windowSpacing) {
-             for (var x = 8; x < flappyGame.pipeWidth - 8; x += windowSpacing) {
-                 if (Math.random() > 0.3) {
-                     windows.push({
-                         x: x,
-                         y: y,
-                         size: windowSize,
-                         lit: Math.random() > 0.4,
-                         color: colors[Math.floor(Math.random() * colors.length)]
-                     });
-                 }
-             }
-         }
-         
-         // 下建筑窗户
-         for (var y = 15; y < flappyGame.canvas.height - pipe.bottomY - 15; y += windowSpacing) {
-             for (var x = 8; x < flappyGame.pipeWidth - 8; x += windowSpacing) {
-                 if (Math.random() > 0.3) {
-                     windows.push({
-                         x: x,
-                         y: pipe.bottomY + y,
-                         size: windowSize,
-                         lit: Math.random() > 0.4,
-                         color: colors[Math.floor(Math.random() * colors.length)]
-                     });
-                 }
-             }
-         }
-         
-         return windows;
-      }
-      
-      function drawCyberpunkDrone(ctx) {
-          var bird = flappyGame.bird;
-          
-          // 初始化无人机属性
-          if (!bird.engineGlow) bird.engineGlow = 0;
-          if (!bird.rotation) bird.rotation = 0;
-          
-          // 引擎光晕动画
-          bird.engineGlow += 0.1;
-          
-          // 根据速度计算旋转
-          bird.rotation = Math.min(Math.max(bird.velocity * 0.05, -0.3), 0.3);
-          
-          ctx.save();
-          ctx.translate(bird.x + bird.size/2, bird.y + bird.size/2);
-          ctx.rotate(bird.rotation);
-          
-          // 无人机主体渐变
-          var bodyGradient = ctx.createLinearGradient(-bird.size/2, 0, bird.size/2, 0);
-          bodyGradient.addColorStop(0, '#00ffff');
-          bodyGradient.addColorStop(0.5, '#0080ff');
-          bodyGradient.addColorStop(1, '#0040ff');
-          
-          ctx.fillStyle = bodyGradient;
-          ctx.fillRect(-bird.size/2, -bird.size/2, bird.size, bird.size);
-          
-          // 无人机轮廓
-          ctx.strokeStyle = '#00ffff';
-          ctx.lineWidth = 2;
-          ctx.strokeRect(-bird.size/2, -bird.size/2, bird.size, bird.size);
-          
-          // 引擎光晕
-          var glowSize = 6 + Math.sin(bird.engineGlow) * 2;
-          var glowGradient = ctx.createRadialGradient(-bird.size/2 - 3, 0, 0, -bird.size/2 - 3, 0, glowSize);
-          glowGradient.addColorStop(0, 'rgba(0, 255, 255, 0.8)');
-          glowGradient.addColorStop(1, 'rgba(0, 255, 255, 0)');
-          ctx.fillStyle = glowGradient;
-          ctx.fillRect(-bird.size/2 - 3 - glowSize, -glowSize, glowSize * 2, glowSize * 2);
-          
-          // 驾驶舱
-          ctx.fillStyle = '#ffff00';
-          ctx.fillRect(bird.size/2 - 8, -3, 6, 6);
-          
-          // 天线
-          ctx.strokeStyle = '#ff00ff';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.moveTo(bird.size/2, 0);
-          ctx.lineTo(bird.size/2 + 6, -6);
-          ctx.stroke();
-          
-          // 闪烁灯
-          if (Math.random() > 0.8) {
-              ctx.fillStyle = '#ff00ff';
-              ctx.fillRect(-bird.size/2 + 2, -bird.size/2 - 2, 2, 2);
-              ctx.fillRect(bird.size/2 - 4, -bird.size/2 - 2, 2, 2);
-          }
-          
-          ctx.restore();
-      }
-      
-      function drawParticles(ctx) {
-          if (!flappyGame.particles) {
-              flappyGame.particles = [];
-          }
-          
-          // 更新和绘制粒子
-          for (var i = flappyGame.particles.length - 1; i >= 0; i--) {
-              var particle = flappyGame.particles[i];
-              particle.x += particle.vx;
-              particle.y += particle.vy;
-              particle.life--;
-              
-              if (particle.life <= 0) {
-                  flappyGame.particles.splice(i, 1);
-                  continue;
-              }
-              
-              var alpha = particle.life / particle.maxLife;
-              ctx.fillStyle = 'rgba(0, 255, 255, ' + (alpha * 0.8) + ')';
-              ctx.fillRect(particle.x, particle.y, particle.size, particle.size);
-          }
-      }
-      
-      function createEngineParticles() {
-          if (!flappyGame.particles) {
-              flappyGame.particles = [];
-          }
-          
-          for (var i = 0; i < 3; i++) {
-              flappyGame.particles.push({
-                  x: flappyGame.bird.x - 5,
-                  y: flappyGame.bird.y + flappyGame.bird.size / 2 + (Math.random() - 0.5) * 8,
-                  vx: -Math.random() * 2 - 1,
-                  vy: (Math.random() - 0.5) * 1.5,
-                  size: Math.random() * 3 + 1,
-                  life: 20,
-                  maxLife: 20
-              });
-          }
-      }
- 
-      function gameOver() {
+    }
+
+    function drawCyberpunkBuildings(ctx) {
+        for (var i = 0; i < flappyGame.pipes.length; i++) {
+            var pipe = flappyGame.pipes[i];
+
+            // 初始化建筑窗户（如果还没有）
+            if (!pipe.windows) {
+                pipe.windows = generateBuildingWindows(pipe);
+            }
+
+            // 建筑结构渐变
+            var buildingGradient = ctx.createLinearGradient(pipe.x, 0, pipe.x + flappyGame.pipeWidth, 0);
+            buildingGradient.addColorStop(0, '#1a1a2e');
+            buildingGradient.addColorStop(0.5, '#16213e');
+            buildingGradient.addColorStop(1, '#0f3460');
+
+            // 上建筑
+            ctx.fillStyle = buildingGradient;
+            ctx.fillRect(pipe.x, 0, flappyGame.pipeWidth, pipe.topHeight);
+
+            // 下建筑
+            ctx.fillRect(pipe.x, pipe.bottomY, flappyGame.pipeWidth, flappyGame.canvas.height - pipe.bottomY);
+
+            // 建筑轮廓
+            ctx.strokeStyle = '#00ffff';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(pipe.x, 0, flappyGame.pipeWidth, pipe.topHeight);
+            ctx.strokeRect(pipe.x, pipe.bottomY, flappyGame.pipeWidth, flappyGame.canvas.height - pipe.bottomY);
+
+            // 霓虹边缘
+            ctx.strokeStyle = '#ff00ff';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(pipe.x, 0);
+            ctx.lineTo(pipe.x, pipe.topHeight);
+            ctx.moveTo(pipe.x + flappyGame.pipeWidth, 0);
+            ctx.lineTo(pipe.x + flappyGame.pipeWidth, pipe.topHeight);
+            ctx.moveTo(pipe.x, pipe.bottomY);
+            ctx.lineTo(pipe.x, flappyGame.canvas.height);
+            ctx.moveTo(pipe.x + flappyGame.pipeWidth, pipe.bottomY);
+            ctx.lineTo(pipe.x + flappyGame.pipeWidth, flappyGame.canvas.height);
+            ctx.stroke();
+
+            // 建筑窗户
+            for (var j = 0; j < pipe.windows.length; j++) {
+                var window = pipe.windows[j];
+                if (window.lit) {
+                    ctx.fillStyle = window.color;
+                    ctx.fillRect(pipe.x + window.x, window.y, window.size, window.size);
+
+                    // 窗户光晕
+                    var windowGlow = ctx.createRadialGradient(
+                        pipe.x + window.x + window.size / 2,
+                        window.y + window.size / 2,
+                        0,
+                        pipe.x + window.x + window.size / 2,
+                        window.y + window.size / 2,
+                        window.size * 2
+                    );
+                    windowGlow.addColorStop(0, window.color);
+                    windowGlow.addColorStop(1, 'transparent');
+                    ctx.fillStyle = windowGlow;
+                    ctx.fillRect(
+                        pipe.x + window.x - window.size / 2,
+                        window.y - window.size / 2,
+                        window.size * 2,
+                        window.size * 2
+                    );
+                }
+            }
+
+            // 警告灯
+            if (Math.random() > 0.95) {
+                ctx.fillStyle = '#ff0000';
+                ctx.fillRect(pipe.x + flappyGame.pipeWidth / 2 - 2, pipe.topHeight - 5, 4, 4);
+                ctx.fillRect(pipe.x + flappyGame.pipeWidth / 2 - 2, pipe.bottomY + 1, 4, 4);
+            }
+        }
+    }
+
+    function generateBuildingWindows(pipe) {
+        var windows = [];
+        var windowSize = 6;
+        var windowSpacing = 12;
+        var colors = ['#00ffff', '#ff00ff', '#00ff00', '#ffff00'];
+
+        // 上建筑窗户
+        for (var y = 15; y < pipe.topHeight - 15; y += windowSpacing) {
+            for (var x = 8; x < flappyGame.pipeWidth - 8; x += windowSpacing) {
+                if (Math.random() > 0.3) {
+                    windows.push({
+                        x: x,
+                        y: y,
+                        size: windowSize,
+                        lit: Math.random() > 0.4,
+                        color: colors[Math.floor(Math.random() * colors.length)]
+                    });
+                }
+            }
+        }
+
+        // 下建筑窗户
+        for (var y = 15; y < flappyGame.canvas.height - pipe.bottomY - 15; y += windowSpacing) {
+            for (var x = 8; x < flappyGame.pipeWidth - 8; x += windowSpacing) {
+                if (Math.random() > 0.3) {
+                    windows.push({
+                        x: x,
+                        y: pipe.bottomY + y,
+                        size: windowSize,
+                        lit: Math.random() > 0.4,
+                        color: colors[Math.floor(Math.random() * colors.length)]
+                    });
+                }
+            }
+        }
+
+        return windows;
+    }
+
+    function drawCyberpunkDrone(ctx) {
+        var bird = flappyGame.bird;
+
+        // 初始化无人机属性
+        if (!bird.engineGlow) bird.engineGlow = 0;
+        if (!bird.rotation) bird.rotation = 0;
+
+        // 引擎光晕动画
+        bird.engineGlow += 0.1;
+
+        // 根据速度计算旋转
+        bird.rotation = Math.min(Math.max(bird.velocity * 0.05, -0.3), 0.3);
+
+        ctx.save();
+        ctx.translate(bird.x + bird.size / 2, bird.y + bird.size / 2);
+        ctx.rotate(bird.rotation);
+
+        // 无人机主体渐变
+        var bodyGradient = ctx.createLinearGradient(-bird.size / 2, 0, bird.size / 2, 0);
+        bodyGradient.addColorStop(0, '#00ffff');
+        bodyGradient.addColorStop(0.5, '#0080ff');
+        bodyGradient.addColorStop(1, '#0040ff');
+
+        ctx.fillStyle = bodyGradient;
+        ctx.fillRect(-bird.size / 2, -bird.size / 2, bird.size, bird.size);
+
+        // 无人机轮廓
+        ctx.strokeStyle = '#00ffff';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(-bird.size / 2, -bird.size / 2, bird.size, bird.size);
+
+        // 引擎光晕
+        var glowSize = 6 + Math.sin(bird.engineGlow) * 2;
+        var glowGradient = ctx.createRadialGradient(-bird.size / 2 - 3, 0, 0, -bird.size / 2 - 3, 0, glowSize);
+        glowGradient.addColorStop(0, 'rgba(0, 255, 255, 0.8)');
+        glowGradient.addColorStop(1, 'rgba(0, 255, 255, 0)');
+        ctx.fillStyle = glowGradient;
+        ctx.fillRect(-bird.size / 2 - 3 - glowSize, -glowSize, glowSize * 2, glowSize * 2);
+
+        // 驾驶舱
+        ctx.fillStyle = '#ffff00';
+        ctx.fillRect(bird.size / 2 - 8, -3, 6, 6);
+
+        // 天线
+        ctx.strokeStyle = '#ff00ff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(bird.size / 2, 0);
+        ctx.lineTo(bird.size / 2 + 6, -6);
+        ctx.stroke();
+
+        // 闪烁灯
+        if (Math.random() > 0.8) {
+            ctx.fillStyle = '#ff00ff';
+            ctx.fillRect(-bird.size / 2 + 2, -bird.size / 2 - 2, 2, 2);
+            ctx.fillRect(bird.size / 2 - 4, -bird.size / 2 - 2, 2, 2);
+        }
+
+        ctx.restore();
+    }
+
+    function drawParticles(ctx) {
+        if (!flappyGame.particles) {
+            flappyGame.particles = [];
+        }
+
+        // 更新和绘制粒子
+        for (var i = flappyGame.particles.length - 1; i >= 0; i--) {
+            var particle = flappyGame.particles[i];
+            particle.x += particle.vx;
+            particle.y += particle.vy;
+            particle.life--;
+
+            if (particle.life <= 0) {
+                flappyGame.particles.splice(i, 1);
+                continue;
+            }
+
+            var alpha = particle.life / particle.maxLife;
+            ctx.fillStyle = 'rgba(0, 255, 255, ' + (alpha * 0.8) + ')';
+            ctx.fillRect(particle.x, particle.y, particle.size, particle.size);
+        }
+    }
+
+    function createEngineParticles() {
+        if (!flappyGame.particles) {
+            flappyGame.particles = [];
+        }
+
+        for (var i = 0; i < 3; i++) {
+            flappyGame.particles.push({
+                x: flappyGame.bird.x - 5,
+                y: flappyGame.bird.y + flappyGame.bird.size / 2 + (Math.random() - 0.5) * 8,
+                vx: -Math.random() * 2 - 1,
+                vy: (Math.random() - 0.5) * 1.5,
+                size: Math.random() * 3 + 1,
+                life: 20,
+                maxLife: 20
+            });
+        }
+    }
+
+    function gameOver() {
         flappyGame.gameState = 'gameOver';
 
         if (flappyGame.score > flappyGame.bestScore) {
@@ -2481,7 +2843,7 @@
 
         if (sudokuClose) sudokuClose.addEventListener('click', closeSudokuGame);
         if (sudokuRestart) sudokuRestart.addEventListener('click', restartSudokuGame);
-        if (sudokuNewGame) sudokuNewGame.addEventListener('click', function() {
+        if (sudokuNewGame) sudokuNewGame.addEventListener('click', function () {
             document.getElementById('sudoku-start-screen').style.display = 'flex';
             document.getElementById('sudoku-game-over').style.display = 'none';
             resetSudokuGame();
@@ -2502,16 +2864,22 @@
         var slidingPuzzleRestart = document.getElementById('sliding-puzzle-restart');
         var slidingPuzzleNewGame = document.getElementById('sliding-puzzle-new-game');
         var slidingPuzzleShuffle = document.getElementById('sliding-puzzle-shuffle');
+        var slidingPuzzleAI = document.getElementById('sliding-puzzle-ai');
+        var slidingPuzzleAIPause = document.getElementById('sliding-puzzle-ai-pause');
+        var aiSpeedSlider = document.getElementById('ai-speed-slider');
         var slidingPuzzleModal = document.getElementById('sliding-puzzle-modal');
 
         if (slidingPuzzleClose) slidingPuzzleClose.addEventListener('click', closeSlidingPuzzleGame);
         if (slidingPuzzleRestart) slidingPuzzleRestart.addEventListener('click', restartSlidingPuzzleGame);
-        if (slidingPuzzleNewGame) slidingPuzzleNewGame.addEventListener('click', function() {
+        if (slidingPuzzleNewGame) slidingPuzzleNewGame.addEventListener('click', function () {
             document.getElementById('sliding-puzzle-start-screen').style.display = 'flex';
             document.getElementById('sliding-puzzle-game-over').style.display = 'none';
             resetSlidingPuzzleGame();
         });
         if (slidingPuzzleShuffle) slidingPuzzleShuffle.addEventListener('click', shuffleSlidingPuzzleManual);
+        if (slidingPuzzleAI) slidingPuzzleAI.addEventListener('click', solveSlidingPuzzleWithAI);
+        if (slidingPuzzleAIPause) slidingPuzzleAIPause.addEventListener('click', toggleAIPause);
+        if (aiSpeedSlider) aiSpeedSlider.addEventListener('input', updateSpeedDisplay);
 
         // 点击背景关闭数字华容道
         if (slidingPuzzleModal) {
